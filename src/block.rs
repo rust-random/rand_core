@@ -150,14 +150,14 @@ impl<const N: usize, G: Generator<Output = [u32; N]>> BlockRng<G> {
     /// This will force a new set of results to be generated on next use.
     #[inline]
     pub fn reset(&mut self) {
-        self.index = self.results.len();
+        self.index = N;
     }
 
     /// Generate a new set of results immediately, setting the index to the
     /// given value.
     #[inline]
     pub fn generate_and_set(&mut self, index: usize) {
-        assert!(index < self.results.len());
+        assert!(index < N);
         self.core.generate(&mut self.results);
         self.index = index;
     }
@@ -166,7 +166,7 @@ impl<const N: usize, G: Generator<Output = [u32; N]>> BlockRng<G> {
 impl<const N: usize, G: Generator<Output = [u32; N]>> RngCore for BlockRng<G> {
     #[inline]
     fn next_u32(&mut self) -> u32 {
-        if self.index >= self.results.len() {
+        if self.index >= N {
             self.generate_and_set(0);
         }
 
@@ -182,18 +182,16 @@ impl<const N: usize, G: Generator<Output = [u32; N]>> RngCore for BlockRng<G> {
             (u64::from(data[1]) << 32) | u64::from(data[0])
         };
 
-        let len = self.results.len();
-
         let index = self.index;
-        if index < len - 1 {
+        if index < N - 1 {
             self.index += 2;
             // Read an u64 from the current index
             read_u64(&self.results, index)
-        } else if index >= len {
+        } else if index >= N {
             self.generate_and_set(2);
             read_u64(&self.results, 0)
         } else {
-            let x = u64::from(self.results[len - 1]);
+            let x = u64::from(self.results[N - 1]);
             self.generate_and_set(1);
             let y = u64::from(self.results[0]);
             (y << 32) | x
@@ -204,7 +202,7 @@ impl<const N: usize, G: Generator<Output = [u32; N]>> RngCore for BlockRng<G> {
     fn fill_bytes(&mut self, dest: &mut [u8]) {
         let mut read_len = 0;
         while read_len < dest.len() {
-            if self.index >= self.results.len() {
+            if self.index >= N {
                 self.generate_and_set(0);
             }
             let (consumed_u32, filled_u8) =
@@ -287,12 +285,11 @@ impl<const N: usize, G: Generator<Output = [u64; N]>> BlockRng64<G> {
     /// `Generator`. Results will be generated on first use.
     #[inline]
     pub fn new(core: G) -> BlockRng64<G> {
-        let results_empty = [0; N];
         BlockRng64 {
             core,
-            index: results_empty.len(),
+            index: N,
             half_used: false,
-            results: results_empty,
+            results: [0; N],
         }
     }
 
@@ -310,7 +307,7 @@ impl<const N: usize, G: Generator<Output = [u64; N]>> BlockRng64<G> {
     /// This will force a new set of results to be generated on next use.
     #[inline]
     pub fn reset(&mut self) {
-        self.index = self.results.len();
+        self.index = N;
         self.half_used = false;
     }
 
@@ -318,7 +315,7 @@ impl<const N: usize, G: Generator<Output = [u64; N]>> BlockRng64<G> {
     /// given value.
     #[inline]
     pub fn generate_and_set(&mut self, index: usize) {
-        assert!(index < self.results.len());
+        assert!(index < N);
         self.core.generate(&mut self.results);
         self.index = index;
         self.half_used = false;
@@ -329,7 +326,7 @@ impl<const N: usize, G: Generator<Output = [u64; N]>> RngCore for BlockRng64<G> 
     #[inline]
     fn next_u32(&mut self) -> u32 {
         let mut index = self.index - self.half_used as usize;
-        if index >= self.results.len() {
+        if index >= N {
             self.core.generate(&mut self.results);
             self.index = 0;
             index = 0;
@@ -347,7 +344,7 @@ impl<const N: usize, G: Generator<Output = [u64; N]>> RngCore for BlockRng64<G> 
 
     #[inline]
     fn next_u64(&mut self) -> u64 {
-        if self.index >= self.results.len() {
+        if self.index >= N {
             self.core.generate(&mut self.results);
             self.index = 0;
         }
@@ -363,7 +360,7 @@ impl<const N: usize, G: Generator<Output = [u64; N]>> RngCore for BlockRng64<G> 
         let mut read_len = 0;
         self.half_used = false;
         while read_len < dest.len() {
-            if self.index >= self.results.len() {
+            if self.index >= N {
                 self.core.generate(&mut self.results);
                 self.index = 0;
             }
@@ -520,7 +517,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "index < self.results.len()")]
+    #[should_panic(expected = "index < N")]
     fn blockrng64_generate_and_set_panic() {
         let mut rng = BlockRng64::<DummyRng64>::from_seed([1, 2, 3, 4, 5, 6, 7, 8]);
         rng.generate_and_set(rng.results.len());
