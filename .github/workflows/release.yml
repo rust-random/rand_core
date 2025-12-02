@@ -11,7 +11,7 @@ jobs:
     permissions:
       id-token: write
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - uses: rust-lang/crates-io-auth-action@v1
       id: auth
     - run: cargo publish
@@ -22,7 +22,7 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: Generate release body
       id: create_release_body
       run: |
