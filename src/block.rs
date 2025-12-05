@@ -37,7 +37,7 @@
 //! // optionally, also implement CryptoGenerator for MyRngCore
 //!
 //! // Final RNG.
-//! let mut rng = BlockRng::<MyRngCore>::seed_from_u64(0);
+//! let mut rng = BlockRng::new(MyRngCore::seed_from_u64(0));
 //! println!("First value: {}", rng.next_u32());
 //! ```
 //!
@@ -45,7 +45,7 @@
 //! [`fill_bytes`]: RngCore::fill_bytes
 
 use crate::le::fill_via_chunks;
-use crate::{CryptoRng, RngCore, SeedableRng, TryRngCore};
+use crate::{CryptoRng, RngCore};
 use core::fmt;
 
 /// A random (block) generator
@@ -229,30 +229,6 @@ impl<const N: usize, G: Generator<Output = [u32; N]>> RngCore for BlockRng<G> {
     }
 }
 
-impl<const N: usize, G: Generator<Output = [u32; N]> + SeedableRng> SeedableRng for BlockRng<G> {
-    type Seed = G::Seed;
-
-    #[inline(always)]
-    fn from_seed(seed: Self::Seed) -> Self {
-        Self::new(G::from_seed(seed))
-    }
-
-    #[inline(always)]
-    fn seed_from_u64(seed: u64) -> Self {
-        Self::new(G::seed_from_u64(seed))
-    }
-
-    #[inline(always)]
-    fn from_rng<S: RngCore + ?Sized>(rng: &mut S) -> Self {
-        Self::new(G::from_rng(rng))
-    }
-
-    #[inline(always)]
-    fn try_from_rng<S: TryRngCore + ?Sized>(rng: &mut S) -> Result<Self, S::Error> {
-        G::try_from_rng(rng).map(Self::new)
-    }
-}
-
 impl<const N: usize, G: CryptoGenerator<Output = [u32; N]>> CryptoRng for BlockRng<G> {}
 
 /// A wrapper type implementing [`RngCore`] for some type implementing
@@ -389,30 +365,6 @@ impl<const N: usize, G: Generator<Output = [u64; N]>> RngCore for BlockRng64<G> 
     }
 }
 
-impl<const N: usize, G: Generator<Output = [u64; N]> + SeedableRng> SeedableRng for BlockRng64<G> {
-    type Seed = G::Seed;
-
-    #[inline(always)]
-    fn from_seed(seed: Self::Seed) -> Self {
-        Self::new(G::from_seed(seed))
-    }
-
-    #[inline(always)]
-    fn seed_from_u64(seed: u64) -> Self {
-        Self::new(G::seed_from_u64(seed))
-    }
-
-    #[inline(always)]
-    fn from_rng<S: RngCore + ?Sized>(rng: &mut S) -> Self {
-        Self::new(G::from_rng(rng))
-    }
-
-    #[inline(always)]
-    fn try_from_rng<S: TryRngCore + ?Sized>(rng: &mut S) -> Result<Self, S::Error> {
-        G::try_from_rng(rng).map(Self::new)
-    }
-}
-
 impl<const N: usize, G: CryptoGenerator<Output = [u64; N]>> CryptoRng for BlockRng64<G> {}
 
 #[cfg(test)]
@@ -448,7 +400,7 @@ mod test {
 
     #[test]
     fn blockrng_next_u32_vs_next_u64() {
-        let mut rng1 = BlockRng::<DummyRng>::from_seed([1, 2, 3, 4]);
+        let mut rng1 = BlockRng::new(DummyRng::from_seed([1, 2, 3, 4]));
         let mut rng2 = rng1.clone();
         let mut rng3 = rng1.clone();
 
@@ -498,7 +450,7 @@ mod test {
 
     #[test]
     fn blockrng64_next_u32_vs_next_u64() {
-        let mut rng1 = BlockRng64::<DummyRng64>::from_seed([1, 2, 3, 4, 5, 6, 7, 8]);
+        let mut rng1 = BlockRng64::new(DummyRng64::from_seed([1, 2, 3, 4, 5, 6, 7, 8]));
         let mut rng2 = rng1.clone();
         let mut rng3 = rng1.clone();
 
@@ -524,7 +476,7 @@ mod test {
 
     #[test]
     fn blockrng64_generate_and_set() {
-        let mut rng = BlockRng64::<DummyRng64>::from_seed([1, 2, 3, 4, 5, 6, 7, 8]);
+        let mut rng = BlockRng64::new(DummyRng64::from_seed([1, 2, 3, 4, 5, 6, 7, 8]));
         assert_eq!(rng.index(), rng.results.len());
 
         rng.generate_and_set(5);
@@ -534,13 +486,13 @@ mod test {
     #[test]
     #[should_panic(expected = "index < N")]
     fn blockrng64_generate_and_set_panic() {
-        let mut rng = BlockRng64::<DummyRng64>::from_seed([1, 2, 3, 4, 5, 6, 7, 8]);
+        let mut rng = BlockRng64::new(DummyRng64::from_seed([1, 2, 3, 4, 5, 6, 7, 8]));
         rng.generate_and_set(rng.results.len());
     }
 
     #[test]
     fn blockrng_next_u64() {
-        let mut rng = BlockRng::<DummyRng>::from_seed([1, 2, 3, 4]);
+        let mut rng = BlockRng::new(DummyRng::from_seed([1, 2, 3, 4]));
         let result_size = rng.results.len();
         for _i in 0..result_size / 2 - 1 {
             rng.next_u64();
