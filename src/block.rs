@@ -44,7 +44,7 @@
 //! [`Generator`]: crate::block::Generator
 //! [`fill_bytes`]: RngCore::fill_bytes
 
-use crate::le::fill_via_chunks;
+use crate::le::{Observable, fill_via_chunks};
 use core::fmt;
 
 /// A random (block) generator
@@ -135,7 +135,7 @@ impl<G: Generator> Drop for BlockRng<G> {
     }
 }
 
-impl<const N: usize, G: Generator<Output = [u32; N]>> BlockRng<G> {
+impl<W: Copy + Default, const N: usize, G: Generator<Output = [W; N]>> BlockRng<G> {
     /// Create a new `BlockRng` from an existing RNG implementing
     /// `Generator`. Results will be generated on first use.
     #[inline]
@@ -143,10 +143,12 @@ impl<const N: usize, G: Generator<Output = [u32; N]>> BlockRng<G> {
         BlockRng {
             core,
             index: N,
-            results: [0; N],
+            results: [W::default(); N],
         }
     }
+}
 
+impl<W: Clone, const N: usize, G: Generator<Output = [W; N]>> BlockRng<G> {
     /// Get the index into the result buffer.
     ///
     /// If this is equal to or larger than the size of the result buffer then
@@ -175,16 +177,18 @@ impl<const N: usize, G: Generator<Output = [u32; N]>> BlockRng<G> {
 
     /// Generate the next word (e.g. `u32`)
     #[inline]
-    pub fn next_word(&mut self) -> u32 {
+    pub fn next_word(&mut self) -> W {
         if self.index >= N {
             self.generate_and_set(0);
         }
 
-        let value = self.results[self.index];
+        let value = self.results[self.index].clone();
         self.index += 1;
         value
     }
+}
 
+impl<const N: usize, G: Generator<Output = [u32; N]>> BlockRng<G> {
     /// Generate a `u64` from two `u32` words
     #[inline]
     pub fn next_u64_from_u32(&mut self) -> u64 {
@@ -208,7 +212,9 @@ impl<const N: usize, G: Generator<Output = [u32; N]>> BlockRng<G> {
             (y << 32) | x
         }
     }
+}
 
+impl<W: Observable, const N: usize, G: Generator<Output = [W; N]>> BlockRng<G> {
     /// Fill `dest`
     #[inline]
     pub fn fill_bytes(&mut self, dest: &mut [u8]) {
