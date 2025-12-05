@@ -7,9 +7,7 @@ readme = "README.md"
 repository = "https://github.com/rust-random/rand_core"
 documentation = "https://docs.rs/rand_core"
 homepage = "https://rust-random.github.io/book"
-description = """
-Core random number generator traits and tools for implementation.
-"""
+description = "Core random number generation traits and tools for implementation."
 keywords = ["random", "rng"]
 categories = ["algorithms", "no-std"]
 edition = "2024"

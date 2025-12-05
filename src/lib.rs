@@ -1,31 +1,19 @@
-//! Random number generation traits
-//!
-//! This crate is mainly of interest to crates publishing implementations of
-//! [`RngCore`]. Other users are encouraged to use the [`rand`] crate instead
-//! which re-exports the main traits and error types.
-//!
-//! [`RngCore`] is the core trait implemented by algorithmic pseudo-random number
-//! generators and external random-number sources.
-//!
-//! [`SeedableRng`] is an extension trait for construction from fixed seeds and
-//! other random number generators.
-//!
-//! The [`le`] sub-module includes a few small functions to assist
-//! implementation of [`RngCore`] and [`SeedableRng`].
-//!
-//! [`rand`]: https://docs.rs/rand
+// Hide badges from generated docs
+//! <style> .badges { display: none; } </style>
 
+#![no_std]
+#![doc = include_str!("../README.md")]
 #![doc(
     html_logo_url = "https://www.rust-lang.org/logos/rust-logo-128x128-blk.png",
     html_favicon_url = "https://www.rust-lang.org/favicon.ico",
     html_root_url = "https://rust-random.github.io/rand/"
 )]
-#![deny(missing_docs)]
-#![deny(missing_debug_implementations)]
-#![deny(clippy::undocumented_unsafe_blocks)]
-#![doc(test(attr(allow(unused_variables), deny(warnings))))]
 #![cfg_attr(docsrs, feature(doc_cfg))]
-#![no_std]
+#![deny(
+    missing_docs,
+    missing_debug_implementations,
+    clippy::undocumented_unsafe_blocks
+)]
 
 use core::{fmt, ops::DerefMut};
 
