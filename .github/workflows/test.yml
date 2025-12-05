@@ -1,4 +1,4 @@
-name: Main tests
+name: Tests
 
 on:
   push:
@@ -44,7 +44,7 @@ jobs:
         with:
           toolchain: nightly
       - name: rand_core
-        run: cargo doc --all-features --no-deps
+        run: cargo doc --no-deps
 
   test:
     runs-on: ${{ matrix.os }}
@@ -92,11 +92,9 @@ jobs:
       - run: ${{ matrix.deps }}
       - name: Maybe minimal versions
         if: ${{ matrix.variant == 'minimal_versions' }}
-        run: |
-          cargo generate-lockfile -Z minimal-versions
+        run: cargo generate-lockfile -Z minimal-versions
       - name: Test rand_core
-        run: |
-          cargo test --target ${{ matrix.target }}
+        run: cargo test --target ${{ matrix.target }}
 
   test-cross:
     runs-on: ${{ matrix.os }}
@@ -123,9 +121,7 @@ jobs:
       - name: Install cross
         run: cargo install cross || true
       - name: Test
-        run: |
-          # all stable features:
-          cross test --no-fail-fast --target ${{ matrix.target }}
+        run: cross test --no-fail-fast --target ${{ matrix.target }}
 
   test-miri:
     runs-on: ubuntu-latest
@@ -137,8 +133,7 @@ jobs:
           rustup override set nightly
           cargo miri setup
       - name: Test (miri)
-        run: |
-          cargo miri test
+        run: cargo miri test
 
   test-no-std:
     runs-on: ubuntu-latest
@@ -149,7 +144,7 @@ jobs:
         with:
             target: thumbv6m-none-eabi
       - name: Build top-level only
-        run: cargo build --target=thumbv6m-none-eabi --no-default-features
+        run: cargo build --target=thumbv6m-none-eabi
 
   test-ios:
     runs-on: macos-latest
