@@ -38,14 +38,13 @@
 //!
 //! // Final RNG.
 //! let mut rng = BlockRng::new(MyRngCore::seed_from_u64(0));
-//! println!("First value: {}", rng.next_u32());
+//! println!("First value: {}", rng.next_word());
 //! ```
 //!
 //! [`Generator`]: crate::block::Generator
 //! [`fill_bytes`]: RngCore::fill_bytes
 
 use crate::le::fill_via_chunks;
-use crate::{CryptoRng, RngCore};
 use core::fmt;
 
 /// A random (block) generator
@@ -173,11 +172,10 @@ impl<const N: usize, G: Generator<Output = [u32; N]>> BlockRng<G> {
         self.core.generate(&mut self.results);
         self.index = index;
     }
-}
 
-impl<const N: usize, G: Generator<Output = [u32; N]>> RngCore for BlockRng<G> {
+    /// Generate the next word (e.g. `u32`)
     #[inline]
-    fn next_u32(&mut self) -> u32 {
+    pub fn next_word(&mut self) -> u32 {
         if self.index >= N {
             self.generate_and_set(0);
         }
@@ -187,8 +185,9 @@ impl<const N: usize, G: Generator<Output = [u32; N]>> RngCore for BlockRng<G> {
         value
     }
 
+    /// Generate a `u64` from two `u32` words
     #[inline]
-    fn next_u64(&mut self) -> u64 {
+    pub fn next_u64_from_u32(&mut self) -> u64 {
         let read_u64 = |results: &[u32], index| {
             let data = &results[index..=index + 1];
             (u64::from(data[1]) << 32) | u64::from(data[0])
@@ -210,8 +209,9 @@ impl<const N: usize, G: Generator<Output = [u32; N]>> RngCore for BlockRng<G> {
         }
     }
 
+    /// Fill `dest`
     #[inline]
-    fn fill_bytes(&mut self, dest: &mut [u8]) {
+    pub fn fill_bytes(&mut self, dest: &mut [u8]) {
         let mut read_len = 0;
         while read_len < dest.len() {
             if self.index >= N {
@@ -226,12 +226,10 @@ impl<const N: usize, G: Generator<Output = [u32; N]>> RngCore for BlockRng<G> {
     }
 }
 
-impl<const N: usize, G: CryptoGenerator<Output = [u32; N]>> CryptoRng for BlockRng<G> {}
-
 #[cfg(test)]
 mod test {
+    use crate::SeedableRng;
     use crate::block::{BlockRng, Generator};
-    use crate::{RngCore, SeedableRng};
 
     #[derive(Debug, Clone)]
     struct DummyRng {
@@ -266,20 +264,20 @@ mod test {
         let mut rng3 = rng1.clone();
 
         let mut a = [0; 16];
-        a[..4].copy_from_slice(&rng1.next_u32().to_le_bytes());
-        a[4..12].copy_from_slice(&rng1.next_u64().to_le_bytes());
-        a[12..].copy_from_slice(&rng1.next_u32().to_le_bytes());
+        a[..4].copy_from_slice(&rng1.next_word().to_le_bytes());
+        a[4..12].copy_from_slice(&rng1.next_u64_from_u32().to_le_bytes());
+        a[12..].copy_from_slice(&rng1.next_word().to_le_bytes());
 
         let mut b = [0; 16];
-        b[..4].copy_from_slice(&rng2.next_u32().to_le_bytes());
-        b[4..8].copy_from_slice(&rng2.next_u32().to_le_bytes());
-        b[8..].copy_from_slice(&rng2.next_u64().to_le_bytes());
+        b[..4].copy_from_slice(&rng2.next_word().to_le_bytes());
+        b[4..8].copy_from_slice(&rng2.next_word().to_le_bytes());
+        b[8..].copy_from_slice(&rng2.next_u64_from_u32().to_le_bytes());
         assert_eq!(a, b);
 
         let mut c = [0; 16];
-        c[..8].copy_from_slice(&rng3.next_u64().to_le_bytes());
-        c[8..12].copy_from_slice(&rng3.next_u32().to_le_bytes());
-        c[12..].copy_from_slice(&rng3.next_u32().to_le_bytes());
+        c[..8].copy_from_slice(&rng3.next_u64_from_u32().to_le_bytes());
+        c[8..12].copy_from_slice(&rng3.next_word().to_le_bytes());
+        c[12..].copy_from_slice(&rng3.next_word().to_le_bytes());
         assert_eq!(a, c);
     }
 
@@ -288,11 +286,11 @@ mod test {
         let mut rng = BlockRng::new(DummyRng::from_seed([1, 2, 3, 4]));
         let result_size = rng.results.len();
         for _i in 0..result_size / 2 - 1 {
-            rng.next_u64();
+            rng.next_u64_from_u32();
         }
-        rng.next_u32();
+        rng.next_word();
 
-        let _ = rng.next_u64();
+        let _ = rng.next_u64_from_u32();
         assert_eq!(rng.index(), 1);
     }
 }
