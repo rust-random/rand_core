@@ -27,18 +27,37 @@
 //!     }
 //! }
 //!
-//! impl SeedableRng for MyRngCore {
+//! // optionally, also implement CryptoGenerator and SeedableRng for MyRngCore
+//!
+//! // Final RNG.
+//! struct MyRng(BlockRng<MyRngCore>);
+//!
+//! impl SeedableRng for MyRng {
 //!     type Seed = [u8; 32];
 //!     fn from_seed(seed: Self::Seed) -> Self {
-//!         unimplemented!()
+//!         MyRng(BlockRng::new(MyRngCore))
 //!     }
 //! }
 //!
-//! // optionally, also implement CryptoGenerator for MyRngCore
+//! impl RngCore for MyRng {
+//!     #[inline]
+//!     fn next_u32(&mut self) -> u32 {
+//!         self.0.next_word()
+//!     }
 //!
-//! // Final RNG.
-//! let mut rng = BlockRng::new(MyRngCore::seed_from_u64(0));
-//! println!("First value: {}", rng.next_word());
+//!     #[inline]
+//!     fn next_u64(&mut self) -> u64 {
+//!         self.0.next_u64_from_u32()
+//!     }
+//!
+//!     #[inline]
+//!     fn fill_bytes(&mut self, bytes: &mut [u8]) {
+//!         self.0.fill_bytes(bytes)
+//!     }
+//! }
+//!
+//! let mut rng = MyRng::seed_from_u64(0);
+//! println!("First value: {}", rng.next_u32());
 //! ```
 //!
 //! [`Generator`]: crate::block::Generator
