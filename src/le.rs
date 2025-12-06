@@ -71,31 +71,39 @@ pub fn fill_bytes_via_next<R: RngCore + ?Sized>(rng: &mut R, dest: &mut [u8]) {
     }
 }
 
-pub(crate) trait Observable: Copy {
-    type Bytes: Sized + AsRef<[u8]>;
-    fn to_le_bytes(self) -> Self::Bytes;
-}
-impl Observable for u32 {
-    type Bytes = [u8; 4];
+mod sealed {
+    pub trait Word: Copy {
+        type Bytes: Sized + AsRef<[u8]>;
+        fn to_le_bytes(self) -> Self::Bytes;
+    }
+    impl Word for u32 {
+        type Bytes = [u8; 4];
 
-    fn to_le_bytes(self) -> Self::Bytes {
-        Self::to_le_bytes(self)
+        fn to_le_bytes(self) -> Self::Bytes {
+            Self::to_le_bytes(self)
+        }
+    }
+    impl Word for u64 {
+        type Bytes = [u8; 8];
+
+        fn to_le_bytes(self) -> Self::Bytes {
+            Self::to_le_bytes(self)
+        }
     }
 }
-impl Observable for u64 {
-    type Bytes = [u8; 8];
 
-    fn to_le_bytes(self) -> Self::Bytes {
-        Self::to_le_bytes(self)
-    }
-}
+/// A marker trait for supported word types
+///
+/// This is implemented for: `u32`, `u64`.
+pub trait Word: sealed::Word {}
+impl<W: sealed::Word> Word for W {}
 
 /// Fill dest from src
 ///
 /// Returns `(n, byte_len)`. `src[..n]` is consumed,
 /// `dest[..byte_len]` is filled. `src[n..]` and `dest[byte_len..]` are left
 /// unaltered.
-pub(crate) fn fill_via_chunks<T: Observable>(src: &[T], dest: &mut [u8]) -> (usize, usize) {
+pub(crate) fn fill_via_chunks<T: Word>(src: &[T], dest: &mut [u8]) -> (usize, usize) {
     let size = core::mem::size_of::<T>();
 
     // Always use little endian for portability of results.

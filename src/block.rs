@@ -72,7 +72,7 @@
 //! [`SeedableRng`]: crate::SeedableRng
 //! [`rand::rngs::ReseedingRng`]: https://docs.rs/rand/latest/rand/rngs/struct.ReseedingRng.html
 
-use crate::le::{Observable, fill_via_chunks};
+use crate::le::{Word, fill_via_chunks};
 use core::fmt;
 
 /// A random (block) generator
@@ -223,7 +223,7 @@ impl<const N: usize, G: Generator<Output = [u32; N]>> BlockRng<G> {
     }
 }
 
-impl<W: Observable, const N: usize, G: Generator<Output = [W; N]>> BlockRng<G> {
+impl<W: Word, const N: usize, G: Generator<Output = [W; N]>> BlockRng<G> {
     /// Fill `dest`
     #[inline]
     pub fn fill_bytes(&mut self, dest: &mut [u8]) {
