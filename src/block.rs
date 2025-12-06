@@ -1,15 +1,15 @@
-//! The `Generator` trait and implementation helpers
+//! The [`Generator`] trait and [`BlockRng`]
 //!
-//! The [`Generator`] trait exists to assist in the implementation of RNGs
-//! which generate a block of data in a cache instead of returning generated
-//! values directly.
+//! Trait [`Generator`] and marker trait [`CryptoGenerator`] may be implemented
+//! by block-generators; that is PRNGs whose output is a *block* of words, such
+//! as `[u32; 16]`.
 //!
-//! Usage of this trait is optional, but provides two advantages:
-//! implementations only need to concern themselves with generation of the
-//! block, not the various [`RngCore`] methods (especially [`fill_bytes`], where
-//! the optimal implementations are not trivial), and this allows
-//! `ReseedingRng` (see [`rand`](https://docs.rs/rand) crate) perform periodic
-//! reseeding with very low overhead.
+//! The struct [`BlockRng`] wraps such a [`Generator`] together with an output
+//! buffer and implements several methods (e.g. [`BlockRng::next_word`]) to
+//! assist in the implementation of [`RngCore`]. Note that (unlike in earlier
+//! versions of `rand_core`) [`BlockRng`] itself does not implement [`RngCore`]
+//! since in practice we found it was always beneficial to use a wrapper type
+//! over [`BlockRng`].
 //!
 //! # Example
 //!
@@ -27,10 +27,8 @@
 //!     }
 //! }
 //!
-//! // optionally, also implement CryptoGenerator and SeedableRng for MyRngCore
-//!
-//! // Final RNG.
-//! struct MyRng(BlockRng<MyRngCore>);
+//! // Our RNG is a wrapper over BlockRng
+//! pub struct MyRng(BlockRng<MyRngCore>);
 //!
 //! impl SeedableRng for MyRng {
 //!     type Seed = [u8; 32];
@@ -56,12 +54,23 @@
 //!     }
 //! }
 //!
+//! // And if applicable: impl CryptoRng for MyRng {}
+//!
 //! let mut rng = MyRng::seed_from_u64(0);
 //! println!("First value: {}", rng.next_u32());
 //! ```
 //!
+//! # ReseedingRng
+//!
+//! The [`Generator`] trait supports usage of [`rand::rngs::ReseedingRng`].
+//! This requires that [`SeedableRng`] be implemented on the "core" generator.
+//! Additionally, it may be useful to implement [`CryptoGenerator`].
+//! (This is in addition to any implementations on an [`RngCore`] type.)
+//!
 //! [`Generator`]: crate::block::Generator
-//! [`fill_bytes`]: RngCore::fill_bytes
+//! [`RngCore`]: crate::RngCore
+//! [`SeedableRng`]: crate::SeedableRng
+//! [`rand::rngs::ReseedingRng`]: https://docs.rs/rand/latest/rand/rngs/struct.ReseedingRng.html
 
 use crate::le::{Observable, fill_via_chunks};
 use core::fmt;
@@ -97,39 +106,20 @@ pub trait Generator {
 /// `#[cfg(test)]` attribute to ensure that mock "crypto" generators cannot be
 /// used in production.
 ///
-/// See [`CryptoRng`] docs for more information.
+/// See [`CryptoRng`](crate::CryptoRng) docs for more information.
 pub trait CryptoGenerator: Generator {}
 
-/// A wrapper type implementing [`RngCore`] for some type implementing
-/// [`Generator`] with `u32` array buffer; i.e. this can be used to implement
-/// a full RNG from just a `generate` function.
+/// RNG functionality for a block [`Generator`]
 ///
-/// The `core` field may be accessed directly but the results buffer may not.
-/// PRNG implementations can simply use a type alias
-/// (`pub type MyRng = BlockRng<MyRngCore>;`) but might prefer to use a
-/// wrapper type (`pub struct MyRng(BlockRng<MyRngCore>);`); the latter must
-/// re-implement `RngCore` but hides the implementation details and allows
-/// extra functionality to be defined on the RNG
-/// (e.g. `impl MyRng { fn set_stream(...){...} }`).
+/// This type encompasses a [`Generator`] [`core`](Self::core) and a buffer.
+/// It provides optimized implementations of methods required by an [`RngCore`].
 ///
-/// `BlockRng` has heavily optimized implementations of the [`RngCore`] methods
-/// reading values from the results buffer, as well as
-/// calling [`Generator::generate`] directly on the output array when
-/// [`fill_bytes`] is called on a large array. These methods also handle
-/// the bookkeeping of when to generate a new batch of values.
+/// All values are consumed in-order of generation. No whole words (e.g. `u32`
+/// or `u64`) are discarded, though where a word is partially used (e.g. for a
+/// byte-fill whose length is not a multiple of the word size) the rest of the
+/// word is discarded.
 ///
-/// No whole generated `u32` values are thrown away and all values are consumed
-/// in-order. [`next_u32`] simply takes the next available `u32` value.
-/// [`next_u64`] is implemented by combining two `u32` values, least
-/// significant first. [`fill_bytes`] consume a whole number of `u32` values,
-/// converting each `u32` to a byte slice in little-endian order. If the requested byte
-/// length is not a multiple of 4, some bytes will be discarded.
-///
-/// For easy initialization `BlockRng` also implements [`SeedableRng`].
-///
-/// [`next_u32`]: RngCore::next_u32
-/// [`next_u64`]: RngCore::next_u64
-/// [`fill_bytes`]: RngCore::fill_bytes
+/// [`RngCore`]: crate::RngCore
 #[derive(Clone)]
 pub struct BlockRng<G: Generator> {
     results: G::Output,
