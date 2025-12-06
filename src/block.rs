@@ -13,17 +13,21 @@
 //!
 //! # Example
 //!
-//! ```no_run
+//! ```
 //! use rand_core::{RngCore, SeedableRng};
 //! use rand_core::block::{Generator, BlockRng};
 //!
-//! struct MyRngCore;
+//! struct MyRngCore {
+//!     // Generator state ...
+//! #    state: [u32; 8],
+//! }
 //!
 //! impl Generator for MyRngCore {
-//!     type Output = [u32; 16];
+//!     type Output = [u32; 8];
 //!
 //!     fn generate(&mut self, output: &mut Self::Output) {
-//!         unimplemented!()
+//!         // Write a new block to output...
+//! #        *output = self.state;
 //!     }
 //! }
 //!
@@ -33,7 +37,15 @@
 //! impl SeedableRng for MyRng {
 //!     type Seed = [u8; 32];
 //!     fn from_seed(seed: Self::Seed) -> Self {
-//!         MyRng(BlockRng::new(MyRngCore))
+//!         let core = MyRngCore {
+//!             // ...
+//! #            state: {
+//! #                let mut buf = [0u32; 8];
+//! #                rand_core::le::read_u32_into(&seed, &mut buf);
+//! #                buf
+//! #            }
+//!         };
+//!         MyRng(BlockRng::new(core))
 //!     }
 //! }
 //!
@@ -58,6 +70,7 @@
 //!
 //! let mut rng = MyRng::seed_from_u64(0);
 //! println!("First value: {}", rng.next_u32());
+//! # assert_eq!(rng.next_u32(), 1171109249);
 //! ```
 //!
 //! # ReseedingRng
