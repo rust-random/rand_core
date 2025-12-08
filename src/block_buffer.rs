@@ -59,6 +59,32 @@ impl<const N: usize> BlockBuffer<u32, N> {
 }
 
 impl<W: Word, const N: usize> BlockBuffer<W, N> {
+    /// Return current buffer index.
+    #[inline]
+    pub fn index(&self) -> W {
+        self.0[0]
+    }
+
+    /// Reset buffer to exhausted state.
+    #[inline]
+    pub fn reset(&mut self) {
+        self.0[0] = W::from_usize(N);
+    }
+
+    /// Generate new block and set index position.
+    ///
+    /// # Panics
+    /// If `index` is equal to zero or bigger than `N`.
+    #[inline]
+    pub fn generate_and_set(&mut self, index: usize, generate_block: impl FnOnce(&mut [W; N])) {
+        assert_ne!(index, 0);
+        if index > N {
+            panic!("New index is bigger than buffer size");
+        }
+        generate_block(&mut self.0);
+        self.0[0] = W::from_usize(index);
+    }
+
     /// Represent block buffer as an array of words.
     ///
     /// This method is inteded only for implementing serialization.
