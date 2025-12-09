@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed optional dependency `serde` ([#28])
 - Add `SeedableRng::fork` methods ([#17])
 - Rename trait `block::BlockRngCore` to `block::Generator` and associated type `Results` to `Output`; remove assoc. `type Item` and remove type bounds ([#26])
+- Add `fn drop` to trait `block::Generator` (#35)
+
 ### Other
 - Changed repository from [rust-random/rand] to [rust-random/core].
 
@@ -29,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#17]: https://github.com/rust-random/rand-core/pull/17
 [#26]: https://github.com/rust-random/rand-core/pull/28
 [#28]: https://github.com/rust-random/rand-core/pull/28
+[#35]: https://github.com/rust-random/rand-core/pull/35
 
 [rust-random/rand]: https://github.com/rust-random/rand
 [rust-random/core]: https://github.com/rust-random/core

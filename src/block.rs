@@ -59,6 +59,15 @@ pub trait Generator {
     ///
     /// This must fill `output` with random data.
     fn generate(&mut self, output: &mut Self::Output);
+
+    /// Destruct the output buffer
+    ///
+    /// This method is called on [`Drop`] of the [`Self::Output`] buffer.
+    /// The default implementation does nothing.
+    #[inline]
+    fn drop(&mut self, output: &mut Self::Output) {
+        let _ = output;
+    }
 }
 
 /// A cryptographically secure generator
@@ -121,6 +130,12 @@ impl<G: Generator + fmt::Debug> fmt::Debug for BlockRng<G> {
             .field("core", &self.core)
             .field("index", &self.index)
             .finish()
+    }
+}
+
+impl<G: Generator> Drop for BlockRng<G> {
+    fn drop(&mut self) {
+        self.core.drop(&mut self.results);
     }
 }
 
