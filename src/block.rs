@@ -136,7 +136,6 @@ pub trait CryptoGenerator: Generator {}
 #[derive(Clone)]
 pub struct BlockRng<G: Generator> {
     results: G::Output,
-    index: usize,
     /// The *core* part of the RNG, implementing the `generate` function.
     pub core: G,
 }
@@ -165,11 +164,9 @@ impl<W: Word + Default, const N: usize, G: Generator<Output = [W; N]>> BlockRng<
     /// `Generator`. Results will be generated on first use.
     #[inline]
     pub fn new(core: G) -> BlockRng<G> {
-        BlockRng {
-            core,
-            index: N,
-            results: [W::default(); N],
-        }
+        let mut results = [W::default(); N];
+        results[0] = W::from_usize(N);
+        BlockRng { core, results }
     }
 
     /// Reconstruct from a core and a remaining-results buffer.
@@ -180,14 +177,11 @@ impl<W: Word + Default, const N: usize, G: Generator<Output = [W; N]>> BlockRng<
     /// Returns `None` if `remaining_results` is too long.
     pub fn reconstruct(core: G, remaining_results: &[W]) -> Option<Self> {
         let mut results = [W::default(); N];
-        if remaining_results.len() <= N {
+        if remaining_results.len() < N {
             let index = N - remaining_results.len();
             results[index..].copy_from_slice(remaining_results);
-            Some(BlockRng {
-                results,
-                index,
-                core,
-            })
+            results[0] = W::from_usize(index);
+            Some(BlockRng { results, core })
         } else {
             None
         }
@@ -202,20 +196,20 @@ impl<W: Word, const N: usize, G: Generator<Output = [W; N]>> BlockRng<G> {
     /// results.
     #[inline(always)]
     pub fn index(&self) -> usize {
-        self.index
+        self.results[0].into_usize()
     }
 
     #[inline(always)]
     fn set_index(&mut self, index: usize) {
         debug_assert!(0 < index && index <= N);
-        self.index = index;
+        self.results[0] = W::from_usize(index);
     }
 
     /// Reset the number of available results.
     /// This will force a new set of results to be generated on next use.
     #[inline]
     pub fn reset(&mut self) {
-        self.index = N;
+        self.set_index(N);
     }
 
     /// Updates the index and buffer contents
