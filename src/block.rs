@@ -218,16 +218,30 @@ impl<W: Word, const N: usize, G: Generator<Output = [W; N]>> BlockRng<G> {
         self.index = N;
     }
 
-    /// Generate a new set of results immediately, setting the index to the
-    /// given value.
+    /// Updates the index and buffer contents
+    ///
+    /// If `index == 0`, this marks the buffer as "empty", causing generation on
+    /// next use.
+    ///
+    /// If `index > 0`, this generates a new block immediately then sets the
+    /// index.
     #[inline]
     pub fn generate_and_set(&mut self, index: usize) {
+        if index == 0 {
+            self.set_index(N);
+            return;
+        }
+
         assert!(index < N);
         self.core.generate(&mut self.results);
         self.set_index(index);
     }
 
     /// Access the unused part of the results buffer
+    ///
+    /// The length of the returned slice is guaranteed to be less than the
+    /// length of `<Self as Generator>::Output` (i.e. less than `N` where
+    /// `Output = [W; N]`).
     ///
     /// This is a low-level interface intended for serialization.
     /// Results are not marked as consumed.
