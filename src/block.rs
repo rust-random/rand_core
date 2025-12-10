@@ -142,7 +142,10 @@ pub struct BlockRng<G: Generator> {
 }
 
 // Custom Debug implementation that does not expose the contents of `results`.
-impl<G: Generator + fmt::Debug> fmt::Debug for BlockRng<G> {
+impl<W: Word, const N: usize, G> fmt::Debug for BlockRng<G>
+where
+    G: Generator<Output = [W; N]> + fmt::Debug,
+{
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         fmt.debug_struct("BlockRng")
             .field("core", &self.core)
@@ -157,7 +160,7 @@ impl<G: Generator> Drop for BlockRng<G> {
     }
 }
 
-impl<W: Copy + Default, const N: usize, G: Generator<Output = [W; N]>> BlockRng<G> {
+impl<W: Word + Default, const N: usize, G: Generator<Output = [W; N]>> BlockRng<G> {
     /// Create a new `BlockRng` from an existing RNG implementing
     /// `Generator`. Results will be generated on first use.
     #[inline]
@@ -191,7 +194,7 @@ impl<W: Copy + Default, const N: usize, G: Generator<Output = [W; N]>> BlockRng<
     }
 }
 
-impl<W: Clone, const N: usize, G: Generator<Output = [W; N]>> BlockRng<G> {
+impl<W: Word, const N: usize, G: Generator<Output = [W; N]>> BlockRng<G> {
     /// Get the index into the result buffer.
     ///
     /// If this is equal to or larger than the size of the result buffer then
