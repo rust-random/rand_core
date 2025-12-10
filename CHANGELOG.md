@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove `BlockRng64` ([#34])
 - Remove impl of `RngCore` for `BlockRng`, making the latter more generic ([#34])
 - Add trait `le::Word` ([#34])
+- Add fn `BlockRng::reconstruct` and fn `BlockRng::remaining_results` ([#36])
 
 ### Other
 - Changed repository from [rust-random/rand] to [rust-random/core].
@@ -36,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#28]: https://github.com/rust-random/rand-core/pull/28
 [#34]: https://github.com/rust-random/rand-core/pull/34
 [#35]: https://github.com/rust-random/rand-core/pull/35
+[#36]: https://github.com/rust-random/rand-core/pull/36
 
 [rust-random/rand]: https://github.com/rust-random/rand
 [rust-random/core]: https://github.com/rust-random/core

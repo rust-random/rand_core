@@ -254,7 +254,7 @@ impl<W: Word, const N: usize, G: Generator<Output = [W; N]>> BlockRng<G> {
             index = 0;
         }
 
-        let value = self.results[index].clone();
+        let value = self.results[index];
         self.set_index(index + 1);
         value
     }
