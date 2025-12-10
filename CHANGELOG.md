@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `fn drop` to trait `block::Generator` ([#35])
 - Remove `BlockRng64` ([#34])
 - Remove impl of `RngCore` for `BlockRng`, making the latter more generic ([#34])
+- Add trait `le::Word` ([#34])
 
 ### Other
 - Changed repository from [rust-random/rand] to [rust-random/core].
