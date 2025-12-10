@@ -74,20 +74,40 @@ pub fn fill_bytes_via_next<R: RngCore + ?Sized>(rng: &mut R, dest: &mut [u8]) {
 mod word {
     pub trait Sealed: Copy {
         type Bytes: Sized + AsRef<[u8]>;
+
         fn to_le_bytes(self) -> Self::Bytes;
+
+        fn from_usize(val: usize) -> Self;
+        fn into_usize(self) -> usize;
     }
+
     impl Sealed for u32 {
         type Bytes = [u8; 4];
 
         fn to_le_bytes(self) -> Self::Bytes {
             Self::to_le_bytes(self)
         }
+
+        fn from_usize(val: usize) -> Self {
+            val.try_into().unwrap()
+        }
+        fn into_usize(self) -> usize {
+            self.try_into().unwrap()
+        }
     }
+
     impl Sealed for u64 {
         type Bytes = [u8; 8];
 
         fn to_le_bytes(self) -> Self::Bytes {
             Self::to_le_bytes(self)
+        }
+
+        fn from_usize(val: usize) -> Self {
+            val.try_into().unwrap()
+        }
+        fn into_usize(self) -> usize {
+            self.try_into().unwrap()
         }
     }
 }
