@@ -7,7 +7,6 @@
     html_logo_url = "https://www.rust-lang.org/logos/rust-logo-128x128-blk.png",
     html_favicon_url = "https://www.rust-lang.org/favicon.ico"
 )]
-#![cfg_attr(docsrs, feature(doc_cfg))]
 #![deny(
     missing_docs,
     missing_debug_implementations,

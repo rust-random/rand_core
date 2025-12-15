@@ -16,9 +16,5 @@ exclude = ["/.github"]
 
 [package.metadata.docs.rs]
 # To build locally:
-# RUSTDOCFLAGS="--cfg docsrs" cargo +nightly doc --all-features --no-deps --open
-all-features = true
+# cargo +nightly doc --open
 rustdoc-args = ["--generate-link-to-definition"]
-
-[package.metadata.playground]
-all-features = true
