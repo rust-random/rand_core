@@ -13,3 +13,8 @@ categories = ["algorithms", "no-std"]
 edition = "2024"
 rust-version = "1.85"
 exclude = ["/.github"]
+
+[package.metadata.docs.rs]
+# To build locally:
+# cargo +nightly doc --open
+rustdoc-args = ["--generate-link-to-definition"]
