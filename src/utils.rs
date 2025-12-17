@@ -40,7 +40,7 @@
 //! ## RNG outputs `u32`
 //!
 //! ```
-//! use rand_core::{RngCore, SeedableRng, le};
+//! use rand_core::{RngCore, SeedableRng, utils};
 //!
 //! pub struct Step32Rng {
 //!     state: u32
@@ -68,12 +68,12 @@
 //!
 //!     #[inline]
 //!     fn next_u64(&mut self) -> u64 {
-//!         le::next_u64_via_u32(self)
+//!         utils::next_u64_via_u32(self)
 //!     }
 //!
 //!     #[inline]
 //!     fn fill_bytes(&mut self, dst: &mut [u8]) {
-//!         le::fill_bytes_via_next_word(dst, || self.next_u32());
+//!         utils::fill_bytes_via_next_word(dst, || self.next_u32());
 //!     }
 //! }
 //!
@@ -88,7 +88,7 @@
 //! ## RNG outputs `u64`
 //!
 //! ```
-//! use rand_core::{RngCore, SeedableRng, le};
+//! use rand_core::{RngCore, SeedableRng, utils};
 //!
 //! pub struct Step64Rng {
 //!     state: u64
@@ -121,7 +121,7 @@
 //!
 //!     #[inline]
 //!     fn fill_bytes(&mut self, dst: &mut [u8]) {
-//!         le::fill_bytes_via_next_word(dst, || self.next_u64());
+//!         utils::fill_bytes_via_next_word(dst, || self.next_u64());
 //!     }
 //! }
 //!
@@ -136,7 +136,7 @@
 //! ## RNG outputs `[u32; N]`
 //!
 //! ```
-//! use rand_core::{RngCore, SeedableRng, le};
+//! use rand_core::{RngCore, SeedableRng, utils};
 //!
 //! struct Block8x32RngInner {
 //!     // ...
@@ -158,7 +158,7 @@
 //!
 //! pub struct Block8x32Rng {
 //!     inner: Block8x32RngInner,
-//!     buffer: le::BlockBuffer<u32, 8>,
+//!     buffer: utils::BlockBuffer<u32, 8>,
 //! }
 //!
 //! impl SeedableRng for Block8x32Rng {
@@ -166,7 +166,7 @@
 //!
 //!     #[inline]
 //!     fn from_seed(seed: Self::Seed) -> Self {
-//!         let seed: [u32; 8] = le::read_words(&seed);
+//!         let seed: [u32; 8] = utils::read_words(&seed);
 //!         Self {
 //!             inner: Block8x32RngInner::new(seed),
 //!             buffer: Default::default(),
@@ -202,7 +202,7 @@
 //! ## RNG outputs `[u64; N]`
 //!
 //! ```
-//! use rand_core::{RngCore, SeedableRng, le};
+//! use rand_core::{RngCore, SeedableRng, utils};
 //!
 //! struct Block4x64RngInner {
 //!     // ...
@@ -224,7 +224,7 @@
 //!
 //! pub struct Block4x64Rng {
 //!     inner: Block4x64RngInner,
-//!     buffer: le::BlockBuffer<u64, 4>,
+//!     buffer: utils::BlockBuffer<u64, 4>,
 //! }
 //!
 //! impl SeedableRng for Block4x64Rng {
@@ -232,7 +232,7 @@
 //!
 //!     #[inline]
 //!     fn from_seed(seed: Self::Seed) -> Self {
-//!         let seed: [u64; 4] = le::read_words(&seed);
+//!         let seed: [u64; 4] = utils::read_words(&seed);
 //!         Self {
 //!             inner: Block4x64RngInner::new(seed),
 //!             buffer: Default::default(),
