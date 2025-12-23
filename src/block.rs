@@ -285,8 +285,8 @@ impl<W: Word, const N: usize, G: Generator<Output = [W; N]>> BlockRng<G> {
     #[inline]
     pub fn fill_bytes(&mut self, dest: &mut [u8]) {
         let mut read_len = 0;
+        let mut index = self.index();
         while read_len < dest.len() {
-            let mut index = self.index();
             if index >= N {
                 self.core.generate(&mut self.results);
                 index = 0;
@@ -304,17 +304,17 @@ impl<W: Word, const N: usize, G: Generator<Output = [W; N]>> BlockRng<G> {
 
             if let Some(src) = src.next() {
                 // We have consumed all full chunks of dest, but not src.
-                let dest = chunks.into_remainder();
-                let n = dest.len();
+                let dest_rem = chunks.into_remainder();
+                let n = dest_rem.len();
                 if n > 0 {
-                    dest.copy_from_slice(&src.to_le_bytes().as_ref()[..n]);
+                    dest_rem.copy_from_slice(&src.to_le_bytes().as_ref()[..n]);
                     index += 1;
-                    read_len += n;
+                    debug_assert_eq!(read_len + n, dest.len());
                 }
+                break;
             }
-
-            self.set_index(index);
         }
+        self.set_index(index);
     }
 }
 
