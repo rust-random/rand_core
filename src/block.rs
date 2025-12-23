@@ -260,22 +260,24 @@ impl<const N: usize, G: Generator<Output = [u32; N]>> BlockRng<G> {
     #[inline]
     pub fn next_u64_from_u32(&mut self) -> u64 {
         let index = self.index();
-        let (lo, hi);
+        let mut new_index;
+        let (mut lo, mut hi);
         if index < N - 1 {
             lo = self.results[index];
             hi = self.results[index + 1];
-            self.set_index(index + 2);
-        } else if index >= N {
-            self.core.generate(&mut self.results);
-            lo = self.results[0];
-            hi = self.results[1];
-            self.set_index(2);
+            new_index = index + 2;
         } else {
             lo = self.results[N - 1];
             self.core.generate(&mut self.results);
             hi = self.results[0];
-            self.set_index(1);
+            new_index = 1;
+            if index >= N {
+                lo = hi;
+                hi = self.results[1];
+                new_index = 2;
+            }
         }
+        self.set_index(new_index);
         (u64::from(hi) << 32) | u64::from(lo)
     }
 }
