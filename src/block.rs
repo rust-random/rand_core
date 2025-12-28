@@ -14,7 +14,8 @@
 //! # Example
 //!
 //! ```
-//! use rand_core::{RngCore, SeedableRng};
+//! use core::convert::Infallible;
+//! use rand_core::{TryRngCore, SeedableRng};
 //! use rand_core::block::{Generator, BlockRng};
 //!
 //! struct MyRngCore {
@@ -45,28 +46,30 @@
 //!     }
 //! }
 //!
-//! impl RngCore for MyRng {
+//! impl TryRngCore for MyRng {
+//!     type Error = Infallible;
+//!
 //!     #[inline]
-//!     fn next_u32(&mut self) -> u32 {
-//!         self.0.next_word()
+//!     fn try_next_u32(&mut self) -> Result<u32, Infallible> {
+//!         Ok(self.0.next_word())
 //!     }
 //!
 //!     #[inline]
-//!     fn next_u64(&mut self) -> u64 {
-//!         self.0.next_u64_from_u32()
+//!     fn try_next_u64(&mut self) -> Result<u64, Infallible> {
+//!         Ok(self.0.next_u64_from_u32())
 //!     }
 //!
 //!     #[inline]
-//!     fn fill_bytes(&mut self, bytes: &mut [u8]) {
-//!         self.0.fill_bytes(bytes)
+//!     fn try_fill_bytes(&mut self, bytes: &mut [u8]) -> Result<(), Infallible> {
+//!         Ok(self.0.fill_bytes(bytes))
 //!     }
 //! }
 //!
 //! // And if applicable: impl CryptoRng for MyRng {}
 //!
 //! let mut rng = MyRng::seed_from_u64(0);
-//! println!("First value: {}", rng.next_u32());
-//! # assert_eq!(rng.next_u32(), 1171109249);
+//! println!("First value: {}", rng.try_next_u32().unwrap());
+//! # assert_eq!(rng.try_next_u32(), Ok(1171109249));
 //! ```
 //!
 //! # ReseedingRng

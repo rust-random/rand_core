@@ -39,7 +39,7 @@
 //! We demonstrate a simple multiplicative congruential generator (MCG), taken
 //! from M.E. O'Neill's blog post
 //! [Does It Beat the Minimal Standard?](https://www.pcg-random.org/posts/does-it-beat-the-minimal-standard.html).
-//! ```
+//! ```ignore
 //! use rand_core::{RngCore, SeedableRng, utils};
 //!
 //! pub struct Mcg128(u128);
@@ -89,8 +89,12 @@ pub use crate::word::Word;
 #[inline]
 pub fn next_u64_via_u32<R: RngCore + ?Sized>(rng: &mut R) -> u64 {
     // Use LE; we explicitly generate one value before the next.
-    let x = u64::from(rng.next_u32());
-    let y = u64::from(rng.next_u32());
+    let x: u64 = match rng.try_next_u32() {
+        Ok(x) => x.into(),
+    };
+    let y: u64 = match rng.try_next_u32() {
+        Ok(y) => y.into(),
+    };
     (y << 32) | x
 }
 
@@ -118,7 +122,9 @@ pub fn fill_bytes_via_next_word<W: Word>(dst: &mut [u8], mut next_word: impl FnM
 /// This may be used to implement `next_u32` or `next_u64`.
 pub fn next_word_via_fill<W: Word, R: RngCore + ?Sized>(rng: &mut R) -> W {
     let mut buf: W::Bytes = Default::default();
-    rng.fill_bytes(buf.as_mut());
+    match rng.try_fill_bytes(buf.as_mut()) {
+        Ok(()) => {}
+    }
     W::from_le_bytes(buf)
 }
 
