@@ -15,7 +15,7 @@
 //!
 //! ```
 //! use core::convert::Infallible;
-//! use rand_core::{TryRngCore, SeedableRng};
+//! use rand_core::{TryRng, SeedableRng};
 //! use rand_core::block::{Generator, BlockRng};
 //!
 //! struct MyRngCore {
@@ -46,7 +46,7 @@
 //!     }
 //! }
 //!
-//! impl TryRngCore for MyRng {
+//! impl TryRng for MyRng {
 //!     type Error = Infallible;
 //!
 //!     #[inline]

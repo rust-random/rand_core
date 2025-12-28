@@ -33,7 +33,7 @@ mod word;
 /// panic in case the underlying fallible RNG yields an error.
 ///
 /// [`OsRng`]: https://docs.rs/rand/latest/rand/rngs/struct.OsRng.html
-pub trait TryRngCore {
+pub trait TryRng {
     /// The type returned in the event of a RNG error.
     type Error: fmt::Debug + fmt::Display;
 
@@ -53,11 +53,11 @@ pub trait TryRngCore {
     }
 }
 
-impl<T: DerefMut> TryRngCore for T
+impl<T: DerefMut> TryRng for T
 where
-    T::Target: TryRngCore,
+    T::Target: TryRng,
 {
-    type Error = <T::Target as TryRngCore>::Error;
+    type Error = <T::Target as TryRng>::Error;
 
     #[inline]
     fn try_next_u32(&mut self) -> Result<u32, Self::Error> {
@@ -75,13 +75,11 @@ where
     }
 }
 
-/// An infallible [`TryRngCore`]
-pub trait InfallibleRng: TryRngCore<Error = Infallible> {}
-impl<R: TryRngCore<Error = Infallible>> InfallibleRng for R {}
+/// An infallible [`TryRng`]
+pub trait InfallibleRng: TryRng<Error = Infallible> {}
+impl<R: TryRng<Error = Infallible>> InfallibleRng for R {}
 
-/// A marker trait over [`TryRngCore`] for securely unpredictable RNGs
-///
-/// This trait is like [`CryptoRng`] but for the trait [`TryRngCore`].
+/// A marker trait over [`TryRng`] for securely unpredictable RNGs
 ///
 /// This marker trait indicates that the implementing generator is intended,
 /// when correctly seeded and protected from side-channel attacks such as a
@@ -95,14 +93,14 @@ impl<R: TryRngCore<Error = Infallible>> InfallibleRng for R {}
 /// (like [`OsRng`]) or if the `default()` instance uses a strong, fresh seed.
 ///
 /// [`OsRng`]: https://docs.rs/rand/latest/rand/rngs/struct.OsRng.html
-pub trait CryptoRng: TryRngCore {}
+pub trait CryptoRng: TryRng {}
 
-/// Wrapper around [`TryRngCore`] implementation which implements [`RngCore`]
+/// Wrapper around [`TryRng`] implementation which implements [`RngCore`]
 /// by panicking on potential errors.
 #[derive(Debug, Default, Clone, Copy, Eq, PartialEq, Hash)]
-pub struct UnwrapErr<R: TryRngCore>(pub R);
+pub struct UnwrapErr<R: TryRng>(pub R);
 
-impl<R: TryRngCore> TryRngCore for UnwrapErr<R> {
+impl<R: TryRng> TryRng for UnwrapErr<R> {
     type Error = Infallible;
 
     #[inline]
@@ -123,7 +121,7 @@ impl<R: TryRngCore> TryRngCore for UnwrapErr<R> {
 
 impl<R: CryptoRng> CryptoRng for UnwrapErr<R> {}
 
-impl<'r, R: TryRngCore + ?Sized> UnwrapErr<&'r mut R> {
+impl<'r, R: TryRng + ?Sized> UnwrapErr<&'r mut R> {
     /// Reborrow with a new lifetime
     ///
     /// Rust allows references like `&T` or `&mut T` to be "reborrowed" through
@@ -312,7 +310,7 @@ pub trait SeedableRng: Sized {
     /// Create a new PRNG seeded from a potentially fallible `Rng`.
     ///
     /// See [`from_rng`][SeedableRng::from_rng] docs for more information.
-    fn try_from_rng<R: TryRngCore + ?Sized>(rng: &mut R) -> Result<Self, R::Error> {
+    fn try_from_rng<R: TryRng + ?Sized>(rng: &mut R) -> Result<Self, R::Error> {
         let mut seed = Self::Seed::default();
         rng.try_fill_bytes(seed.as_mut())?;
         Ok(Self::from_seed(seed))
@@ -341,7 +339,7 @@ pub trait SeedableRng: Sized {
     /// This is the failable equivalent to [`SeedableRng::fork`]
     fn try_fork(&mut self) -> Result<Self, Self::Error>
     where
-        Self: TryRngCore,
+        Self: TryRng,
     {
         Self::try_from_rng(self)
     }
@@ -394,7 +392,7 @@ mod test {
     // A stub RNG.
     struct SomeRng;
 
-    impl TryRngCore for SomeRng {
+    impl TryRng for SomeRng {
         type Error = Infallible;
 
         fn try_next_u32(&mut self) -> Result<u32, Self::Error> {
@@ -412,10 +410,10 @@ mod test {
 
     #[test]
     fn dyn_rngcore_to_tryrngcore() {
-        // Illustrates the need for `+ ?Sized` bound in `impl<R: InfallibleRng> TryRngCore for R`.
+        // Illustrates the need for `+ ?Sized` bound in `impl<R: InfallibleRng> TryRng for R`.
 
         // A method in another crate taking a fallible RNG
-        fn third_party_api(_rng: &mut (impl TryRngCore + ?Sized)) -> bool {
+        fn third_party_api(_rng: &mut (impl TryRng + ?Sized)) -> bool {
             true
         }
 
@@ -431,13 +429,13 @@ mod test {
     #[test]
     fn dyn_unwrap_mut_tryrngcore() {
         // Illustrates the need for `+ ?Sized` bound in
-        // `impl<R: TryRngCore> InfallibleRng for UnwrapMut<'_, R>`.
+        // `impl<R: TryRng> InfallibleRng for UnwrapMut<'_, R>`.
 
         fn third_party_api(_rng: &mut impl InfallibleRng) -> bool {
             true
         }
 
-        fn my_api(rng: &mut (impl TryRngCore + ?Sized)) -> bool {
+        fn my_api(rng: &mut (impl TryRng + ?Sized)) -> bool {
             let mut infallible_rng = rng.unwrap_err();
             third_party_api(&mut infallible_rng)
         }
@@ -449,7 +447,7 @@ mod test {
     fn reborrow_unwrap_mut() {
         struct FourRng;
 
-        impl TryRngCore for FourRng {
+        impl TryRng for FourRng {
             type Error = core::convert::Infallible;
             fn try_next_u32(&mut self) -> Result<u32, Self::Error> {
                 Ok(4)
