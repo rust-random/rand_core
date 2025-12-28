@@ -76,8 +76,8 @@ where
 }
 
 /// An infallible [`TryRngCore`]
-pub trait RngCore: TryRngCore<Error = Infallible> {}
-impl<R: TryRngCore<Error = Infallible>> RngCore for R {}
+pub trait InfallibleRng: TryRngCore<Error = Infallible> {}
+impl<R: TryRngCore<Error = Infallible>> InfallibleRng for R {}
 
 /// A marker trait over [`TryRngCore`] for securely unpredictable RNGs
 ///
@@ -301,7 +301,7 @@ pub trait SeedableRng: Sized {
     /// (in prior versions this was not required).
     ///
     /// [`rand`]: https://docs.rs/rand
-    fn from_rng<R: RngCore + ?Sized>(rng: &mut R) -> Self {
+    fn from_rng<R: InfallibleRng + ?Sized>(rng: &mut R) -> Self {
         let mut seed = Self::Seed::default();
         match rng.try_fill_bytes(seed.as_mut()) {
             Ok(()) => {}
@@ -326,7 +326,7 @@ pub trait SeedableRng: Sized {
     /// This is useful when initializing a PRNG for a thread
     fn fork(&mut self) -> Self
     where
-        Self: RngCore,
+        Self: InfallibleRng,
     {
         Self::from_rng(self)
     }
@@ -412,7 +412,7 @@ mod test {
 
     #[test]
     fn dyn_rngcore_to_tryrngcore() {
-        // Illustrates the need for `+ ?Sized` bound in `impl<R: RngCore> TryRngCore for R`.
+        // Illustrates the need for `+ ?Sized` bound in `impl<R: InfallibleRng> TryRngCore for R`.
 
         // A method in another crate taking a fallible RNG
         fn third_party_api(_rng: &mut (impl TryRngCore + ?Sized)) -> bool {
@@ -420,7 +420,7 @@ mod test {
         }
 
         // A method in our crate requiring an infallible RNG
-        fn my_api(rng: &mut dyn RngCore) -> bool {
+        fn my_api(rng: &mut dyn InfallibleRng) -> bool {
             // We want to call the method above
             third_party_api(rng)
         }
@@ -431,9 +431,9 @@ mod test {
     #[test]
     fn dyn_unwrap_mut_tryrngcore() {
         // Illustrates the need for `+ ?Sized` bound in
-        // `impl<R: TryRngCore> RngCore for UnwrapMut<'_, R>`.
+        // `impl<R: TryRngCore> InfallibleRng for UnwrapMut<'_, R>`.
 
-        fn third_party_api(_rng: &mut impl RngCore) -> bool {
+        fn third_party_api(_rng: &mut impl InfallibleRng) -> bool {
             true
         }
 

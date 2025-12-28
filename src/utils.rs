@@ -80,14 +80,14 @@
 //! # assert_eq!(buf, [154, 23, 43, 68, 75]);
 //! ```
 
-use crate::RngCore;
+use crate::InfallibleRng;
 #[allow(unused)]
 use crate::SeedableRng;
 pub use crate::word::Word;
 
 /// Implement `next_u64` via `next_u32`, little-endian order.
 #[inline]
-pub fn next_u64_via_u32<R: RngCore + ?Sized>(rng: &mut R) -> u64 {
+pub fn next_u64_via_u32<R: InfallibleRng + ?Sized>(rng: &mut R) -> u64 {
     // Use LE; we explicitly generate one value before the next.
     let x: u64 = match rng.try_next_u32() {
         Ok(x) => x.into(),
@@ -100,7 +100,7 @@ pub fn next_u64_via_u32<R: RngCore + ?Sized>(rng: &mut R) -> u64 {
 
 /// Fill `dst` with bytes using `next_word`
 ///
-/// This may be used to implement [`RngCore::fill_bytes`] over `next_u32` or
+/// This may be used to implement [`InfallibleRng::fill_bytes`] over `next_u32` or
 /// `next_u64`. Words are used in order of generation. The last word may be
 /// partially discarded.
 #[inline]
@@ -117,10 +117,10 @@ pub fn fill_bytes_via_next_word<W: Word>(dst: &mut [u8], mut next_word: impl FnM
     }
 }
 
-/// Yield a word using [`RngCore::fill_bytes`]
+/// Yield a word using [`InfallibleRng::fill_bytes`]
 ///
 /// This may be used to implement `next_u32` or `next_u64`.
-pub fn next_word_via_fill<W: Word, R: RngCore + ?Sized>(rng: &mut R) -> W {
+pub fn next_word_via_fill<W: Word, R: InfallibleRng + ?Sized>(rng: &mut R) -> W {
     let mut buf: W::Bytes = Default::default();
     match rng.try_fill_bytes(buf.as_mut()) {
         Ok(()) => {}
