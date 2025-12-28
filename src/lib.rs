@@ -89,13 +89,13 @@ impl<R: TryRngCore<Error = Infallible>> RngCore for R {}
 /// provided as a tool to aid review of cryptographic code, but does not by
 /// itself guarantee suitability for cryptographic applications.
 ///
-/// Implementors of `TryCryptoRng` should only implement [`Default`] if the
+/// Implementors of `CryptoRng` should only implement [`Default`] if the
 /// `default()` instances are themselves secure generators: for example if the
 /// implementing type is a stateless interface over a secure external generator
 /// (like [`OsRng`]) or if the `default()` instance uses a strong, fresh seed.
 ///
 /// [`OsRng`]: https://docs.rs/rand/latest/rand/rngs/struct.OsRng.html
-pub trait TryCryptoRng: TryRngCore {}
+pub trait CryptoRng: TryRngCore {}
 
 /// Wrapper around [`TryRngCore`] implementation which implements [`RngCore`]
 /// by panicking on potential errors.
@@ -121,7 +121,7 @@ impl<R: TryRngCore> TryRngCore for UnwrapErr<R> {
     }
 }
 
-impl<R: TryCryptoRng> TryCryptoRng for UnwrapErr<R> {}
+impl<R: CryptoRng> CryptoRng for UnwrapErr<R> {}
 
 impl<'r, R: TryRngCore + ?Sized> UnwrapErr<&'r mut R> {
     /// Reborrow with a new lifetime
@@ -408,7 +408,7 @@ mod test {
         }
     }
 
-    impl TryCryptoRng for SomeRng {}
+    impl CryptoRng for SomeRng {}
 
     #[test]
     fn dyn_rngcore_to_tryrngcore() {
