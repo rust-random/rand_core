@@ -84,32 +84,10 @@ impl<R: TryRngCore<Error = Infallible>> RngCore for R {
 
 /// A marker trait over [`RngCore`] for securely unpredictable RNGs
 ///
-/// This marker trait indicates that the implementing generator is intended,
-/// when correctly seeded and protected from side-channel attacks such as a
-/// leaking of state, to be a cryptographically secure generator. This trait is
-/// provided as a tool to aid review of cryptographic code, but does not by
-/// itself guarantee suitability for cryptographic applications.
-///
-/// Implementors of `CryptoRng` automatically implement the [`TryCryptoRng`]
-/// trait.
-///
-/// Implementors of `CryptoRng` should only implement [`Default`] if the
-/// `default()` instances are themselves secure generators: for example if the
-/// implementing type is a stateless interface over a secure external generator
-/// (like [`OsRng`]) or if the `default()` instance uses a strong, fresh seed.
-///
-/// Formally, a CSPRNG (Cryptographically Secure Pseudo-Random Number Generator)
-/// should satisfy an additional property over other generators: assuming that
-/// the generator has been appropriately seeded and has unknown state, then
-/// given the first *k* bits of an algorithm's output
-/// sequence, it should not be possible using polynomial-time algorithms to
-/// predict the next bit with probability significantly greater than 50%.
-///
-/// An optional property of CSPRNGs is backtracking resistance: if the CSPRNG's
-/// state is revealed, it will not be computationally-feasible to reconstruct
-/// prior output values. This property is not required by `CryptoRng`.
-///
-/// [`OsRng`]: https://docs.rs/rand/latest/rand/rngs/struct.OsRng.html
+/// This is just the sum trait <code>[RngCore][] + [TryCryptoRng]</code>. In
+/// generic bounds, usage of `RngCore + TryCryptoRng` is equivalent, however
+/// sum traits are not ([yet](https://github.com/rust-lang/rfcs/issues/2035))
+/// [`dyn`-safe](https://quinedot.github.io/rust-learning/dyn-safety.html).
 pub trait CryptoRng: RngCore + TryCryptoRng {}
 
 impl<R: RngCore + TryCryptoRng> CryptoRng for R {}
@@ -249,20 +227,28 @@ where
 
 /// A marker trait over [`TryRngCore`] for securely unpredictable RNGs
 ///
-/// This trait is like [`CryptoRng`] but for the trait [`TryRngCore`].
-///
 /// This marker trait indicates that the implementing generator is intended,
 /// when correctly seeded and protected from side-channel attacks such as a
 /// leaking of state, to be a cryptographically secure generator. This trait is
 /// provided as a tool to aid review of cryptographic code, but does not by
 /// itself guarantee suitability for cryptographic applications.
 ///
-/// Implementors of `TryCryptoRng` should only implement [`Default`] if the
-/// `default()` instances are themselves secure generators: for example if the
-/// implementing type is a stateless interface over a secure external generator
-/// (like [`OsRng`]) or if the `default()` instance uses a strong, fresh seed.
+/// Formally, a CSPRNG (Cryptographically Secure Pseudo-Random Number Generator)
+/// should satisfy an additional property over other generators: assuming that
+/// the generator has been appropriately seeded and has unknown state, then
+/// given the first *k* bits of an algorithm's output
+/// sequence, it should not be possible using polynomial-time algorithms to
+/// predict the next bit with probability significantly greater than 50%.
 ///
-/// [`OsRng`]: https://docs.rs/rand/latest/rand/rngs/struct.OsRng.html
+/// An optional property of CSPRNGs is backtracking resistance: if the CSPRNG's
+/// state is revealed, it will not be computationally-feasible to reconstruct
+/// prior output values. This property is not required by `CryptoRng`.
+///
+/// Implementors of `TryCryptoRng` should only implement [`Default`] if a
+/// default-constructed instance is itself a secure generator, for example
+/// [`getrandom::SysRng`] which is a stateless interface.
+///
+/// [`getrandom::SysRng`]: https://docs.rs/getrandom/latest/getrandom/struct.SysRng.html
 pub trait TryCryptoRng: TryRngCore {}
 
 impl<R: DerefMut> TryCryptoRng for R where R::Target: TryCryptoRng {}
