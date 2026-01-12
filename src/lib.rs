@@ -75,7 +75,7 @@ mod word;
 /// [`fill_bytes`]: RngCore::fill_bytes
 /// [`next_u32`]: RngCore::next_u32
 /// [`next_u64`]: RngCore::next_u64
-pub trait RngCore {
+pub trait RngCore: TryRngCore<Error = Infallible> {
     /// Return the next random `u32`.
     fn next_u32(&mut self) -> u32;
 
@@ -91,23 +91,26 @@ pub trait RngCore {
     fn fill_bytes(&mut self, dst: &mut [u8]);
 }
 
-impl<T: DerefMut> RngCore for T
-where
-    T::Target: RngCore,
-{
+impl<R: TryRngCore<Error = Infallible>> RngCore for R {
     #[inline]
     fn next_u32(&mut self) -> u32 {
-        self.deref_mut().next_u32()
+        match self.try_next_u32() {
+            Ok(x) => x,
+        }
     }
 
     #[inline]
     fn next_u64(&mut self) -> u64 {
-        self.deref_mut().next_u64()
+        match self.try_next_u64() {
+            Ok(x) => x,
+        }
     }
 
     #[inline]
     fn fill_bytes(&mut self, dst: &mut [u8]) {
-        self.deref_mut().fill_bytes(dst);
+        match self.try_fill_bytes(dst) {
+            Ok(()) => (),
+        }
     }
 }
 
@@ -139,9 +142,9 @@ where
 /// prior output values. This property is not required by `CryptoRng`.
 ///
 /// [`OsRng`]: https://docs.rs/rand/latest/rand/rngs/struct.OsRng.html
-pub trait CryptoRng: RngCore {}
+pub trait CryptoRng: RngCore + TryCryptoRng {}
 
-impl<T: DerefMut> CryptoRng for T where T::Target: CryptoRng {}
+impl<R: RngCore + TryCryptoRng> CryptoRng for R {}
 
 /// A potentially fallible variant of [`RngCore`]
 ///
