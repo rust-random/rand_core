@@ -11,22 +11,22 @@
 //! to/from byte sequences, and since its purpose is reproducibility,
 //! non-reproducible sources (e.g. `OsRng`) need not bother with it.
 //!
-//! ## Implementing [`RngCore`]
+//! ## Implementing [`TryRngCore`]
 //!
-//! Usually an implementation of [`RngCore`] will implement one of the three
+//! Usually an implementation of [`TryRngCore`] will implement one of the three
 //! methods over its internal source. The following helpers are provided for
 //! the remaining implementations.
 //!
-//! **`fn next_u32`:**
+//! **`fn try_next_u32`:**
 //! -   `self.next_u64() as u32`
 //! -   `(self.next_u64() >> 32) as u32`
 //! -   <code>[next_word_via_fill][](self)</code>
 //!
-//! **`fn next_u64`:**
+//! **`fn try_next_u64`:**
 //! -   <code>[next_u64_via_u32][](self)</code>
 //! -   <code>[next_word_via_fill][](self)</code>
 //!
-//! **`fn fill_bytes`:**
+//! **`fn try_fill_bytes`:**
 //! -   <code>[fill_bytes_via_next_word][](self, dest)</code>
 //!
 //! ## Implementing [`SeedableRng`]
@@ -84,9 +84,9 @@
 //! ```
 
 use crate::RngCore;
-#[allow(unused)]
-use crate::SeedableRng;
 pub use crate::word::Word;
+#[allow(unused)]
+use crate::{SeedableRng, TryRngCore};
 
 /// Implement `next_u64` via `next_u32`, little-endian order.
 #[inline]
@@ -99,7 +99,7 @@ pub fn next_u64_via_u32<R: RngCore + ?Sized>(rng: &mut R) -> u64 {
 
 /// Fill `dst` with bytes using `next_word`
 ///
-/// This may be used to implement [`RngCore::fill_bytes`] over `next_u32` or
+/// This may be used to implement `fill_bytes` over `next_u32` or
 /// `next_u64`. Words are used in order of generation. The last word may be
 /// partially discarded.
 #[inline]
