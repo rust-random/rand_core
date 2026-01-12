@@ -519,19 +519,21 @@ mod test {
     // A stub RNG.
     struct SomeRng;
 
-    impl RngCore for SomeRng {
-        fn next_u32(&mut self) -> u32 {
+    impl TryRngCore for SomeRng {
+        type Error = Infallible;
+
+        fn try_next_u32(&mut self) -> Result<u32, Self::Error> {
             unimplemented!()
         }
-        fn next_u64(&mut self) -> u64 {
+        fn try_next_u64(&mut self) -> Result<u64, Self::Error> {
             unimplemented!()
         }
-        fn fill_bytes(&mut self, _: &mut [u8]) {
+        fn try_fill_bytes(&mut self, _dst: &mut [u8]) -> Result<(), Self::Error> {
             unimplemented!()
         }
     }
 
-    impl CryptoRng for SomeRng {}
+    impl TryCryptoRng for SomeRng {}
 
     #[test]
     fn dyn_rngcore_to_tryrngcore() {
@@ -571,15 +573,14 @@ mod test {
 
     #[test]
     fn dyn_unwrap_mut_tryrngcore() {
-        // Illustrates the need for `+ ?Sized` bound in
-        // `impl<R: TryRngCore> RngCore for UnwrapMut<'_, R>`.
+        // Illustrates that UnwrapMut may be used over &mut R where R: TryRngCore
 
         fn third_party_api(_rng: &mut impl RngCore) -> bool {
             true
         }
 
         fn my_api(rng: &mut (impl TryRngCore + ?Sized)) -> bool {
-            let mut infallible_rng = rng.unwrap_mut();
+            let mut infallible_rng = rng.unwrap_err();
             third_party_api(&mut infallible_rng)
         }
 
@@ -588,15 +589,14 @@ mod test {
 
     #[test]
     fn dyn_unwrap_mut_trycryptorng() {
-        // Illustrates the need for `+ ?Sized` bound in
-        // `impl<R: TryCryptoRng> CryptoRng for UnwrapMut<'_, R>`.
+        // Crypto variant of the above
 
         fn third_party_api(_rng: &mut impl CryptoRng) -> bool {
             true
         }
 
         fn my_api(rng: &mut (impl TryCryptoRng + ?Sized)) -> bool {
-            let mut infallible_rng = rng.unwrap_mut();
+            let mut infallible_rng = rng.unwrap_err();
             third_party_api(&mut infallible_rng)
         }
 
@@ -621,7 +621,7 @@ mod test {
         }
 
         let mut rng = FourRng;
-        let mut rng = rng.unwrap_mut();
+        let mut rng = (&mut rng).unwrap_err();
 
         assert_eq!(rng.next_u32(), 4);
         {

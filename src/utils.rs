@@ -40,7 +40,8 @@
 //! from M.E. O'Neill's blog post
 //! [Does It Beat the Minimal Standard?](https://www.pcg-random.org/posts/does-it-beat-the-minimal-standard.html).
 //! ```
-//! use rand_core::{RngCore, SeedableRng, utils};
+//! use core::convert::Infallible;
+//! use rand_core::{RngCore, SeedableRng, TryRngCore, utils};
 //!
 //! pub struct Mcg128(u128);
 //!
@@ -54,21 +55,23 @@
 //!     }
 //! }
 //!
-//! impl RngCore for Mcg128 {
+//! impl TryRngCore for Mcg128 {
+//!     type Error = Infallible;
+//!
 //!     #[inline]
-//!     fn next_u32(&mut self) -> u32 {
-//!         (self.next_u64() >> 32) as u32
+//!     fn try_next_u32(&mut self) -> Result<u32, Infallible> {
+//!         Ok((self.next_u64() >> 32) as u32)
 //!     }
 //!
 //!     #[inline]
-//!     fn next_u64(&mut self) -> u64 {
+//!     fn try_next_u64(&mut self) -> Result<u64, Infallible> {
 //!         self.0 = self.0.wrapping_mul(0x0fc94e3bf4e9ab32866458cd56f5e605);
-//!         (self.0 >> 64) as u64
+//!         Ok((self.0 >> 64) as u64)
 //!     }
 //!
 //!     #[inline]
-//!     fn fill_bytes(&mut self, dst: &mut [u8]) {
-//!         utils::fill_bytes_via_next_word(dst, || self.next_u64());
+//!     fn try_fill_bytes(&mut self, dst: &mut [u8]) -> Result<(), Infallible> {
+//!         Ok(utils::fill_bytes_via_next_word(dst, || self.next_u64()))
 //!     }
 //! }
 //! #

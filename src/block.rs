@@ -14,7 +14,8 @@
 //! # Example
 //!
 //! ```
-//! use rand_core::{RngCore, SeedableRng};
+//! use core::convert::Infallible;
+//! use rand_core::{RngCore, SeedableRng, TryRngCore};
 //! use rand_core::block::{Generator, BlockRng};
 //!
 //! struct MyRngCore {
@@ -45,20 +46,22 @@
 //!     }
 //! }
 //!
-//! impl RngCore for MyRng {
+//! impl TryRngCore for MyRng {
+//!     type Error = Infallible;
+//!
 //!     #[inline]
-//!     fn next_u32(&mut self) -> u32 {
-//!         self.0.next_word()
+//!     fn try_next_u32(&mut self) -> Result<u32, Infallible> {
+//!         Ok(self.0.next_word())
 //!     }
 //!
 //!     #[inline]
-//!     fn next_u64(&mut self) -> u64 {
-//!         self.0.next_u64_from_u32()
+//!     fn try_next_u64(&mut self) -> Result<u64, Infallible> {
+//!         Ok(self.0.next_u64_from_u32())
 //!     }
 //!
 //!     #[inline]
-//!     fn fill_bytes(&mut self, bytes: &mut [u8]) {
-//!         self.0.fill_bytes(bytes)
+//!     fn try_fill_bytes(&mut self, bytes: &mut [u8]) -> Result<(), Infallible> {
+//!         Ok(self.0.fill_bytes(bytes))
 //!     }
 //! }
 //!
