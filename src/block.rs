@@ -227,7 +227,7 @@ impl<W: Word, const N: usize, G: Generator<Output = [W; N]>> BlockRng<G> {
     /// The result is in the range `0..N` where `N` is the buffer size (in
     /// words).
     #[inline]
-    pub fn word_offset(&mut self) -> usize {
+    pub fn word_offset(&self) -> usize {
         let index = self.index();
         if index >= N { 0 } else { index }
     }
