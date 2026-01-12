@@ -83,17 +83,16 @@
 //! # assert_eq!(buf, [154, 23, 43, 68, 75]);
 //! ```
 
-use crate::RngCore;
 pub use crate::word::Word;
 #[allow(unused)]
 use crate::{SeedableRng, TryRngCore};
 
-/// Implement `next_u64` via `next_u32`, little-endian order.
+/// Generate a `u64` using `next_u32`, little-endian order.
 #[inline]
-pub fn next_u64_via_u32<R: RngCore + ?Sized>(rng: &mut R) -> u64 {
+pub fn next_u64_via_u32(mut next_u32: impl FnMut() -> u32) -> u64 {
     // Use LE; we explicitly generate one value before the next.
-    let x = u64::from(rng.next_u32());
-    let y = u64::from(rng.next_u32());
+    let x = u64::from(next_u32());
+    let y = u64::from(next_u32());
     (y << 32) | x
 }
 
@@ -116,12 +115,10 @@ pub fn fill_bytes_via_next_word<W: Word>(dst: &mut [u8], mut next_word: impl FnM
     }
 }
 
-/// Yield a word using [`RngCore::fill_bytes`]
-///
-/// This may be used to implement `next_u32` or `next_u64`.
-pub fn next_word_via_fill<W: Word, R: RngCore + ?Sized>(rng: &mut R) -> W {
+/// Generate a `u32` or `u64` word using `fill_bytes`
+pub fn next_word_via_fill<W: Word>(mut fill_bytes: impl FnMut(&mut [u8])) -> W {
     let mut buf: W::Bytes = Default::default();
-    rng.fill_bytes(buf.as_mut());
+    fill_bytes(buf.as_mut());
     W::from_le_bytes(buf)
 }
 
