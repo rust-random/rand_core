@@ -273,7 +273,8 @@ impl<R: TryRngCore> TryRngCore for UnwrapErr<R> {
 
     #[inline]
     fn try_fill_bytes(&mut self, dst: &mut [u8]) -> Result<(), Self::Error> {
-        Ok(self.0.try_fill_bytes(dst).unwrap())
+        self.0.try_fill_bytes(dst).unwrap();
+        Ok(())
     }
 }
 
