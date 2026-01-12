@@ -176,11 +176,6 @@ pub trait TryRngCore {
     {
         UnwrapErr(self)
     }
-
-    /// Wrap RNG with the [`UnwrapMut`] wrapper.
-    fn unwrap_mut(&mut self) -> UnwrapMut<'_, Self> {
-        UnwrapMut(self)
-    }
 }
 
 // Note that, unfortunately, this blanket impl prevents us from implementing
@@ -252,44 +247,20 @@ impl<R: TryRngCore> RngCore for UnwrapErr<R> {
 
 impl<R: TryCryptoRng> CryptoRng for UnwrapErr<R> {}
 
-/// Wrapper around [`TryRngCore`] implementation which implements [`RngCore`]
-/// by panicking on potential errors.
-#[derive(Debug, Eq, PartialEq, Hash)]
-pub struct UnwrapMut<'r, R: TryRngCore + ?Sized>(pub &'r mut R);
-
-impl<'r, R: TryRngCore + ?Sized> UnwrapMut<'r, R> {
+impl<'r, R: TryRngCore + ?Sized> UnwrapErr<&'r mut R> {
     /// Reborrow with a new lifetime
     ///
     /// Rust allows references like `&T` or `&mut T` to be "reborrowed" through
     /// coercion: essentially, the pointer is copied under a new, shorter, lifetime.
     /// Until rfcs#1403 lands, reborrows on user types require a method call.
     #[inline(always)]
-    pub fn re<'b>(&'b mut self) -> UnwrapMut<'b, R>
+    pub fn re<'b>(&'b mut self) -> UnwrapErr<&'b mut R>
     where
         'r: 'b,
     {
-        UnwrapMut(self.0)
+        UnwrapErr(self.0)
     }
 }
-
-impl<R: TryRngCore + ?Sized> RngCore for UnwrapMut<'_, R> {
-    #[inline]
-    fn next_u32(&mut self) -> u32 {
-        self.0.try_next_u32().unwrap()
-    }
-
-    #[inline]
-    fn next_u64(&mut self) -> u64 {
-        self.0.try_next_u64().unwrap()
-    }
-
-    #[inline]
-    fn fill_bytes(&mut self, dst: &mut [u8]) {
-        self.0.try_fill_bytes(dst).unwrap()
-    }
-}
-
-impl<R: TryCryptoRng + ?Sized> CryptoRng for UnwrapMut<'_, R> {}
 
 /// A random number generator that can be explicitly seeded.
 ///
