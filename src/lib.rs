@@ -13,7 +13,7 @@
     clippy::undocumented_unsafe_blocks
 )]
 
-use core::{fmt, ops::DerefMut};
+use core::{convert::Infallible, fmt, ops::DerefMut};
 
 pub mod block;
 pub mod utils;
@@ -75,7 +75,6 @@ mod word;
 /// [`fill_bytes`]: RngCore::fill_bytes
 /// [`next_u32`]: RngCore::next_u32
 /// [`next_u64`]: RngCore::next_u64
-/// [`Infallible`]: core::convert::Infallible
 pub trait RngCore {
     /// Return the next random `u32`.
     fn next_u32(&mut self) -> u32;
@@ -150,8 +149,7 @@ impl<T: DerefMut> CryptoRng for T where T::Target: CryptoRng {}
 /// fallible IO-based generators such as [`OsRng`].
 ///
 /// All implementations of [`RngCore`] automatically support this `TryRngCore`
-/// trait, using [`Infallible`][core::convert::Infallible] as the associated
-/// `Error` type.
+/// trait, using [`Infallible`] as the associated `Error` type.
 ///
 /// An implementation of this trait may be made compatible with code requiring
 /// an [`RngCore`] through [`TryRngCore::unwrap_err`]. The resulting RNG will
@@ -228,24 +226,26 @@ impl<R: DerefMut> TryCryptoRng for R where R::Target: TryCryptoRng {}
 #[derive(Debug, Default, Clone, Copy, Eq, PartialEq, Hash)]
 pub struct UnwrapErr<R: TryRngCore>(pub R);
 
-impl<R: TryRngCore> RngCore for UnwrapErr<R> {
+impl<R: TryRngCore> TryRngCore for UnwrapErr<R> {
+    type Error = Infallible;
+
     #[inline]
-    fn next_u32(&mut self) -> u32 {
-        self.0.try_next_u32().unwrap()
+    fn try_next_u32(&mut self) -> Result<u32, Self::Error> {
+        Ok(self.0.try_next_u32().unwrap())
     }
 
     #[inline]
-    fn next_u64(&mut self) -> u64 {
-        self.0.try_next_u64().unwrap()
+    fn try_next_u64(&mut self) -> Result<u64, Self::Error> {
+        Ok(self.0.try_next_u64().unwrap())
     }
 
     #[inline]
-    fn fill_bytes(&mut self, dst: &mut [u8]) {
-        self.0.try_fill_bytes(dst).unwrap()
+    fn try_fill_bytes(&mut self, dst: &mut [u8]) -> Result<(), Self::Error> {
+        Ok(self.0.try_fill_bytes(dst).unwrap())
     }
 }
 
-impl<R: TryCryptoRng> CryptoRng for UnwrapErr<R> {}
+impl<R: TryCryptoRng> TryCryptoRng for UnwrapErr<R> {}
 
 impl<'r, R: TryRngCore + ?Sized> UnwrapErr<&'r mut R> {
     /// Reborrow with a new lifetime
@@ -605,7 +605,7 @@ mod test {
         struct FourRng;
 
         impl TryRngCore for FourRng {
-            type Error = core::convert::Infallible;
+            type Error = Infallible;
             fn try_next_u32(&mut self) -> Result<u32, Self::Error> {
                 Ok(4)
             }
