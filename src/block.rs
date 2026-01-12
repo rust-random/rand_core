@@ -190,7 +190,7 @@ impl<W: Word, const N: usize, G: Generator<Output = [W; N]>> BlockRng<G> {
     /// the buffer is "empty" and `generate()` must be called to produce new
     /// results.
     #[inline(always)]
-    pub fn index(&self) -> usize {
+    fn index(&self) -> usize {
         self.results[0].into_usize()
     }
 
@@ -200,30 +200,36 @@ impl<W: Word, const N: usize, G: Generator<Output = [W; N]>> BlockRng<G> {
         self.results[0] = W::from_usize(index);
     }
 
-    /// Reset the number of available results.
-    /// This will force a new set of results to be generated on next use.
-    #[inline]
-    pub fn reset(&mut self) {
-        self.set_index(N);
-    }
-
-    /// Updates the index and buffer contents
+    /// Re-generate buffer contents, skipping the first `n` words
     ///
-    /// If `index == 0`, this marks the buffer as "empty", causing generation on
-    /// next use.
+    /// Existing buffer contents are discarded. A new set of results is
+    /// generated (either immediately or when next required). The first `n`
+    /// words are skipped (this may be used to set a specific word position).
     ///
-    /// If `index > 0`, this generates a new block immediately then sets the
-    /// index.
+    /// # Panics
+    ///
+    /// This method will panic if `n >= N` where `N` is the buffer size (in
+    /// words).
     #[inline]
-    pub fn generate_and_set(&mut self, index: usize) {
-        if index == 0 {
+    pub fn reset_and_skip(&mut self, n: usize) {
+        if n == 0 {
             self.set_index(N);
             return;
         }
 
-        assert!(index < N);
+        assert!(n < N);
         self.core.generate(&mut self.results);
-        self.set_index(index);
+        self.set_index(n);
+    }
+
+    /// Get the number of words consumed since the start of the block
+    ///
+    /// The result is in the range `0..N` where `N` is the buffer size (in
+    /// words).
+    #[inline]
+    pub fn word_offset(&mut self) -> usize {
+        let index = self.index();
+        if index >= N { 0 } else { index }
     }
 
     /// Access the unused part of the results buffer
