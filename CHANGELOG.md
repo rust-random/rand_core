@@ -25,6 +25,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replace `le::fill_bytes_via_next` with `utils::fill_bytes_via_next_word` ([#38])
 - Replace `le::next_u32_via_fill` and `le::next_u64_via_fill` with `utils::next_word_via_fill` ([#38])
 - Replace `le::read_u32_into` and `le::read_u64_into` with `utils::read_words` ([#38])
+- Let `RngCore: TryRngCore<Error = Infallible>` ([#45])
+- Remove `UnwrapMut` ([#45])
+- Let `utils::{next_u64_via_u32, next_word_via_fill}` take a closure instead of `R: RngCore` ([#45])
 
 ### Other
 - Changed repository from [rust-random/rand] to [rust-random/core].
@@ -43,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#35]: https://github.com/rust-random/rand-core/pull/35
 [#36]: https://github.com/rust-random/rand-core/pull/36
 [#38]: https://github.com/rust-random/rand-core/pull/38
+[#45]: https://github.com/rust-random/rand-core/pull/45
 
 [rust-random/rand]: https://github.com/rust-random/rand
 [rust-random/core]: https://github.com/rust-random/core
