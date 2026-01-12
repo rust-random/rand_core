@@ -186,23 +186,25 @@ pub trait TryRngCore {
 // Note that, unfortunately, this blanket impl prevents us from implementing
 // `TryRngCore` for types which can be dereferenced to `TryRngCore`, i.e. `TryRngCore`
 // will not be automatically implemented for `&mut R`, `Box<R>`, etc.
-impl<R: RngCore + ?Sized> TryRngCore for R {
-    type Error = core::convert::Infallible;
+impl<R: DerefMut> TryRngCore for R
+where
+    R::Target: TryRngCore,
+{
+    type Error = <R::Target as TryRngCore>::Error;
 
     #[inline]
     fn try_next_u32(&mut self) -> Result<u32, Self::Error> {
-        Ok(self.next_u32())
+        self.deref_mut().try_next_u32()
     }
 
     #[inline]
     fn try_next_u64(&mut self) -> Result<u64, Self::Error> {
-        Ok(self.next_u64())
+        self.deref_mut().try_next_u64()
     }
 
     #[inline]
     fn try_fill_bytes(&mut self, dst: &mut [u8]) -> Result<(), Self::Error> {
-        self.fill_bytes(dst);
-        Ok(())
+        self.deref_mut().try_fill_bytes(dst)
     }
 }
 
@@ -224,7 +226,7 @@ impl<R: RngCore + ?Sized> TryRngCore for R {
 /// [`OsRng`]: https://docs.rs/rand/latest/rand/rngs/struct.OsRng.html
 pub trait TryCryptoRng: TryRngCore {}
 
-impl<R: CryptoRng + ?Sized> TryCryptoRng for R {}
+impl<R: DerefMut> TryCryptoRng for R where R::Target: TryCryptoRng {}
 
 /// Wrapper around [`TryRngCore`] implementation which implements [`RngCore`]
 /// by panicking on potential errors.
