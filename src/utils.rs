@@ -71,7 +71,7 @@
 //!
 //!     #[inline]
 //!     fn try_fill_bytes(&mut self, dst: &mut [u8]) -> Result<(), Infallible> {
-//!         Ok(utils::fill_bytes_via_next_word(dst, || self.next_u64()))
+//!         utils::fill_bytes_via_next_word(dst, || self.try_next_u64())
 //!     }
 //! }
 //! #
@@ -89,11 +89,11 @@ use crate::{SeedableRng, TryRngCore};
 
 /// Generate a `u64` using `next_u32`, little-endian order.
 #[inline]
-pub fn next_u64_via_u32(mut next_u32: impl FnMut() -> u32) -> u64 {
+pub fn next_u64_via_u32<R: TryRngCore + ?Sized>(rng: &mut R) -> Result<u64, R::Error> {
     // Use LE; we explicitly generate one value before the next.
-    let x = u64::from(next_u32());
-    let y = u64::from(next_u32());
-    (y << 32) | x
+    let x = u64::from(rng.try_next_u32()?);
+    let y = u64::from(rng.try_next_u32()?);
+    Ok((y << 32) | x)
 }
 
 /// Fill `dst` with bytes using `next_word`
@@ -102,24 +102,28 @@ pub fn next_u64_via_u32(mut next_u32: impl FnMut() -> u32) -> u64 {
 /// `next_u64`. Words are used in order of generation. The last word may be
 /// partially discarded.
 #[inline]
-pub fn fill_bytes_via_next_word<W: Word>(dst: &mut [u8], mut next_word: impl FnMut() -> W) {
+pub fn fill_bytes_via_next_word<E, W: Word>(
+    dst: &mut [u8],
+    mut next_word: impl FnMut() -> Result<W, E>,
+) -> Result<(), E> {
     let mut chunks = dst.chunks_exact_mut(size_of::<W>());
     for chunk in &mut chunks {
-        let val = next_word();
+        let val = next_word()?;
         chunk.copy_from_slice(val.to_le_bytes().as_ref());
     }
     let rem = chunks.into_remainder();
     if !rem.is_empty() {
-        let val = next_word().to_le_bytes();
+        let val = next_word()?.to_le_bytes();
         rem.copy_from_slice(&val.as_ref()[..rem.len()]);
     }
+    Ok(())
 }
 
 /// Generate a `u32` or `u64` word using `fill_bytes`
-pub fn next_word_via_fill<W: Word>(mut fill_bytes: impl FnMut(&mut [u8])) -> W {
+pub fn next_word_via_fill<W: Word, R: TryRngCore>(rng: &mut R) -> Result<W, R::Error> {
     let mut buf: W::Bytes = Default::default();
-    fill_bytes(buf.as_mut());
-    W::from_le_bytes(buf)
+    rng.try_fill_bytes(buf.as_mut())?;
+    Ok(W::from_le_bytes(buf))
 }
 
 /// Reads an array of words from a byte slice
