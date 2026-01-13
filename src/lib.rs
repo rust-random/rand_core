@@ -36,7 +36,7 @@ mod word;
 ///
 /// # Implementing `RngCore`
 ///
-/// Implement [`TryRngCore`] with <code>type Error = [Infallible][]</code>.
+/// Implement [`TryRngCore`] with <code>type Error = [core::convert::Infallible][]</code>.
 ///
 /// [`rand`]: https://docs.rs/rand/
 /// [`rand::Rng`]: https://docs.rs/rand/latest/rand/trait.Rng.html
@@ -124,6 +124,8 @@ impl<R: RngCore + TryCryptoRng> CryptoRng for R {}
 /// statistical anomalies may appear long before a cycle occurs. An
 /// implementation should ensure its period is sufficiently long that no
 /// anomalies are likely to appear in usage and/or document its limitations.
+///
+/// For more on PRNG quality and period, see
 /// [The Rust Rand Book: Quality](https://rust-random.github.io/book/guide-rngs.html#quality).
 ///
 /// ### Reproducibility
@@ -181,7 +183,7 @@ impl<R: RngCore + TryCryptoRng> CryptoRng for R {}
 pub trait TryRngCore {
     /// The type returned in the event of a RNG error.
     ///
-    /// Use type [`Infallible`] for infallible implementations.
+    /// Use type [`core::convert::Infallible`] for infallible implementations.
     type Error: fmt::Debug + fmt::Display;
 
     /// Return the next random `u32`.
