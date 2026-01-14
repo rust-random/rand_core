@@ -82,10 +82,10 @@ impl<R: TryRngCore<Error = Infallible>> RngCore for R {
     }
 }
 
-/// A marker trait over [`RngCore`] for securely unpredictable RNGs
+/// A marker trait for securely unpredictable infallible RNGs
 ///
-/// This is a convenient trait alias for `TryCryptoRng<Error = Infallible>`.
-/// This is also the trait sum of <code>[RngCore][] + [TryCryptoRng]</code>.
+/// This is a convenient trait alias for <code>[TryCryptoRng]<Error = [Infallible]></code>.
+/// It is equivalent to the trait sum <code>[RngCore] + [TryCryptoRng]</code>.
 pub trait CryptoRng: TryCryptoRng<Error = Infallible> {}
 
 impl<R: TryCryptoRng<Error = Infallible>> CryptoRng for R {}
