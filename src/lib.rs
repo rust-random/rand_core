@@ -84,13 +84,11 @@ impl<R: TryRngCore<Error = Infallible>> RngCore for R {
 
 /// A marker trait over [`RngCore`] for securely unpredictable RNGs
 ///
-/// This is just the sum trait <code>[RngCore][] + [TryCryptoRng]</code>. In
-/// generic bounds, usage of `RngCore + TryCryptoRng` is equivalent, however
-/// sum traits are not ([yet](https://github.com/rust-lang/rfcs/issues/2035))
-/// [`dyn`-safe](https://quinedot.github.io/rust-learning/dyn-safety.html).
-pub trait CryptoRng: RngCore + TryCryptoRng {}
+/// This is a convenient trait alias for `TryCryptoRng<Error = Infallible>`.
+/// This is also the trait sum of <code>[RngCore][] + [TryCryptoRng]</code>.
+pub trait CryptoRng: TryCryptoRng<Error = Infallible> {}
 
-impl<R: RngCore + TryCryptoRng> CryptoRng for R {}
+impl<R: TryCryptoRng<Error = Infallible>> CryptoRng for R {}
 
 /// Base trait for random number generators and random data sources
 ///
@@ -265,18 +263,23 @@ impl<R: TryRngCore> TryRngCore for UnwrapErr<R> {
 
     #[inline]
     fn try_next_u32(&mut self) -> Result<u32, Self::Error> {
-        Ok(self.0.try_next_u32().unwrap())
+        self.0
+            .try_next_u32()
+            .map_err(|err| panic!("rand_core::UnwrapErr: failed to unwrap: {err}"))
     }
 
     #[inline]
     fn try_next_u64(&mut self) -> Result<u64, Self::Error> {
-        Ok(self.0.try_next_u64().unwrap())
+        self.0
+            .try_next_u64()
+            .map_err(|err| panic!("rand_core::UnwrapErr: failed to unwrap: {err}"))
     }
 
     #[inline]
     fn try_fill_bytes(&mut self, dst: &mut [u8]) -> Result<(), Self::Error> {
-        self.0.try_fill_bytes(dst).unwrap();
-        Ok(())
+        self.0
+            .try_fill_bytes(dst)
+            .map_err(|err| panic!("rand_core::UnwrapErr: failed to unwrap: {err}"))
     }
 }
 

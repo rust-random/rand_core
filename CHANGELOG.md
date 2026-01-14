@@ -27,7 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replace `le::read_u32_into` and `le::read_u64_into` with `utils::read_words` ([#38])
 - `RngCore` is now an extension trait of `TryRngCore<Error = Infallible>` ([#45])
 - Remove `UnwrapMut` ([#45])
-- Let `utils::{next_u64_via_u32, next_word_via_fill}` take a closure instead of `R: RngCore` ([#45])
+- Add error handling to `utils` functions over `TryRngCore` or via closure ([#45])
 
 ### Other
 - Changed repository from [rust-random/rand] to [rust-random/core].
