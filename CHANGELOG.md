@@ -28,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replace fn `BlockRng::index` with `word_offset` ([#44])
 - Rename fn `BlockRng::generate_and_set` -> `reset_and_skip`; remove fn `reset` ([#44])
 - `RngCore` is now an extension trait of `TryRngCore<Error = Infallible>` ([#45])
-- Remove `UnwrapMut` ([#45])
+- Remove `UnwrapMut` and fns `unwrap_mut`, `unwrap_err`, retaining `UnwrapErr` ([#45], [#53])
 - Add error handling to `utils` functions over `TryRngCore` or via closure ([#45])
 
 ### Other
@@ -50,6 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#38]: https://github.com/rust-random/rand-core/pull/38
 [#44]: https://github.com/rust-random/rand-core/pull/44
 [#45]: https://github.com/rust-random/rand-core/pull/45
+[#53]: https://github.com/rust-random/rand-core/pull/53
 
 [rust-random/rand]: https://github.com/rust-random/rand
 [rust-random/core]: https://github.com/rust-random/core
