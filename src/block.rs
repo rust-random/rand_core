@@ -6,8 +6,8 @@
 //!
 //! The struct [`BlockRng`] wraps such a [`Generator`] together with an output
 //! buffer and implements several methods (e.g. [`BlockRng::next_word`]) to
-//! assist in the implementation of [`TryRngCore`]. Note that (unlike in earlier
-//! versions of `rand_core`) [`BlockRng`] itself does not implement [`TryRngCore`]
+//! assist in the implementation of [`TryRng`]. Note that (unlike in earlier
+//! versions of `rand_core`) [`BlockRng`] itself does not implement [`TryRng`]
 //! since in practice we found it was always beneficial to use a wrapper type
 //! over [`BlockRng`].
 //!
@@ -15,7 +15,7 @@
 //!
 //! ```
 //! use core::convert::Infallible;
-//! use rand_core::{RngCore, SeedableRng, TryRngCore};
+//! use rand_core::{Rng, SeedableRng, TryRng};
 //! use rand_core::block::{Generator, BlockRng};
 //!
 //! struct MyRngCore {
@@ -46,7 +46,7 @@
 //!     }
 //! }
 //!
-//! impl TryRngCore for MyRng {
+//! impl TryRng for MyRng {
 //!     type Error = Infallible;
 //!
 //!     #[inline]
@@ -77,10 +77,10 @@
 //! The [`Generator`] trait supports usage of [`rand::rngs::ReseedingRng`].
 //! This requires that [`SeedableRng`] be implemented on the "core" generator.
 //! Additionally, it may be useful to implement [`CryptoGenerator`].
-//! (This is in addition to any implementations on an [`TryRngCore`] type.)
+//! (This is in addition to any implementations on an [`TryRng`] type.)
 //!
 //! [`Generator`]: crate::block::Generator
-//! [`TryRngCore`]: crate::TryRngCore
+//! [`TryRng`]: crate::TryRng
 //! [`SeedableRng`]: crate::SeedableRng
 //! [`rand::rngs::ReseedingRng`]: https://docs.rs/rand/latest/rand/rngs/struct.ReseedingRng.html
 
@@ -124,14 +124,14 @@ pub trait CryptoGenerator: Generator {}
 /// RNG functionality for a block [`Generator`]
 ///
 /// This type encompasses a [`Generator`] [`core`](Self::core) and a buffer.
-/// It provides optimized implementations of methods required by an [`RngCore`].
+/// It provides optimized implementations of methods required by an [`Rng`].
 ///
 /// All values are consumed in-order of generation. No whole words (e.g. `u32`
 /// or `u64`) are discarded, though where a word is partially used (e.g. for a
 /// byte-fill whose length is not a multiple of the word size) the rest of the
 /// word is discarded.
 ///
-/// [`RngCore`]: crate::RngCore
+/// [`Rng`]: crate::Rng
 #[derive(Clone)]
 pub struct BlockRng<G: Generator> {
     results: G::Output,

@@ -11,9 +11,9 @@
 //! to/from byte sequences, and since its purpose is reproducibility,
 //! non-reproducible sources (e.g. `OsRng`) need not bother with it.
 //!
-//! ## Implementing [`TryRngCore`]
+//! ## Implementing [`TryRng`]
 //!
-//! Usually an implementation of [`TryRngCore`] will implement one of the three
+//! Usually an implementation of [`TryRng`] will implement one of the three
 //! methods over its internal source. The following helpers are provided for
 //! the remaining implementations.
 //!
@@ -41,7 +41,7 @@
 //! [Does It Beat the Minimal Standard?](https://www.pcg-random.org/posts/does-it-beat-the-minimal-standard.html).
 //! ```
 //! use core::convert::Infallible;
-//! use rand_core::{RngCore, SeedableRng, TryRngCore, utils};
+//! use rand_core::{Rng, SeedableRng, TryRng, utils};
 //!
 //! pub struct Mcg128(u128);
 //!
@@ -55,7 +55,7 @@
 //!     }
 //! }
 //!
-//! impl TryRngCore for Mcg128 {
+//! impl TryRng for Mcg128 {
 //!     type Error = Infallible;
 //!
 //!     #[inline]
@@ -85,11 +85,11 @@
 
 pub use crate::word::Word;
 #[allow(unused)]
-use crate::{SeedableRng, TryRngCore};
+use crate::{SeedableRng, TryRng};
 
 /// Generate a `u64` using `next_u32`, little-endian order.
 #[inline]
-pub fn next_u64_via_u32<R: TryRngCore + ?Sized>(rng: &mut R) -> Result<u64, R::Error> {
+pub fn next_u64_via_u32<R: TryRng + ?Sized>(rng: &mut R) -> Result<u64, R::Error> {
     // Use LE; we explicitly generate one value before the next.
     let x = u64::from(rng.try_next_u32()?);
     let y = u64::from(rng.try_next_u32()?);
@@ -120,7 +120,7 @@ pub fn fill_bytes_via_next_word<E, W: Word>(
 }
 
 /// Generate a `u32` or `u64` word using `fill_bytes`
-pub fn next_word_via_fill<W: Word, R: TryRngCore>(rng: &mut R) -> Result<W, R::Error> {
+pub fn next_word_via_fill<W: Word, R: TryRng>(rng: &mut R) -> Result<W, R::Error> {
     let mut buf: W::Bytes = Default::default();
     rng.try_fill_bytes(buf.as_mut())?;
     Ok(W::from_le_bytes(buf))
