@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.10.0] - Unreleased
 ### API changes
-- `RngCore` and `TryRngCore` are renamed to `Rng` and `TryRng` accordingly ([#54])
+- `RngCore` and `TryRngCore` are renamed to `Rng` and `TryRng` respectively ([#54])
 - Relax `Sized` bound on impls of `SeedableRng` ([rand#1641])
 - Move `rand_core::impls::*` to `rand_core::le` module ([rand#1667])
 - Use Edition 2024 and MSRV 1.85 ([rand#1668])
