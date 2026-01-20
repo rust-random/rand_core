@@ -144,7 +144,7 @@ impl<R> CryptoRng for R where R: TryCryptoRng<Error = Infallible> + ?Sized {}
 ///
 /// Many implementations of `TryRngCore` (those with
 /// <code>type Error = [Infallible][]</code>) already implement [`RngCore`]; in
-/// other cases [`Self::unwrap_err`] may be used to obtain an implementation of
+/// other cases [`UnwrapErr`] may be used to obtain an implementation of
 /// [`RngCore`].
 ///
 /// # Implementing `TryRngCore`
@@ -193,14 +193,6 @@ pub trait TryRngCore {
     fn try_next_u64(&mut self) -> Result<u64, Self::Error>;
     /// Fill `dst` entirely with random data.
     fn try_fill_bytes(&mut self, dst: &mut [u8]) -> Result<(), Self::Error>;
-
-    /// Wrap RNG with the [`UnwrapErr`] wrapper.
-    fn unwrap_err(self) -> UnwrapErr<Self>
-    where
-        Self: Sized,
-    {
-        UnwrapErr(self)
-    }
 }
 
 // Note that, unfortunately, this blanket impl prevents us from implementing
@@ -618,7 +610,7 @@ mod test {
         }
 
         fn my_api(rng: &mut (impl TryRngCore + ?Sized)) -> bool {
-            let mut infallible_rng = rng.unwrap_err();
+            let mut infallible_rng = UnwrapErr(rng);
             third_party_api(&mut infallible_rng)
         }
 
@@ -634,7 +626,7 @@ mod test {
         }
 
         fn my_api(rng: &mut (impl TryCryptoRng + ?Sized)) -> bool {
-            let mut infallible_rng = rng.unwrap_err();
+            let mut infallible_rng = UnwrapErr(rng);
             third_party_api(&mut infallible_rng)
         }
 
@@ -659,7 +651,7 @@ mod test {
         }
 
         let mut rng = FourRng;
-        let mut rng = (&mut rng).unwrap_err();
+        let mut rng = UnwrapErr(&mut rng);
 
         assert_eq!(rng.next_u32(), 4);
         {
