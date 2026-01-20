@@ -6,10 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.10.0] - Unreleased
 ### API changes
+- `RngCore` and `TryRngCore` are renamed to `Rng` and `TryRng` accordingly ([#54])
 - Relax `Sized` bound on impls of `SeedableRng` ([rand#1641])
 - Move `rand_core::impls::*` to `rand_core::le` module ([rand#1667])
 - Use Edition 2024 and MSRV 1.85 ([rand#1668])
-- Remove fn `TryRngCore::read_adapter(..) -> RngReadAdapter` (replaced with `rand::RngReader`) ([rand#1669])
+- Remove fn `TryRng::read_adapter(..) -> RngReadAdapter` (replaced with `rand::RngReader`) ([rand#1669])
 - Remove feature `os_rng`, structs `OsRng` and `OsError` and fns `from_os_rng`, `try_from_os_rng` ([rand#1674])
 - Remove feature `std` ([rand#1674])
 - Removed dependency `getrandom` ([rand#1674])
@@ -18,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rename trait `block::BlockRngCore` to `block::Generator` and associated type `Results` to `Output`; remove assoc. `type Item` and remove type bounds ([#26])
 - Add `fn drop` to trait `block::Generator` ([#35])
 - Remove `BlockRng64` ([#34])
-- Remove impl of `RngCore` for `BlockRng`, making the latter more generic ([#34])
+- Remove impl of `Rng` for `BlockRng`, making the latter more generic ([#34])
 - Add trait `le::Word` ([#34])
 - Add fn `BlockRng::reconstruct` and fn `BlockRng::remaining_results` ([#36])
 - Move `le::{Word, next_u64_via_u32}` to new `utils` module; remove `le` ([#38])
@@ -27,9 +28,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replace `le::read_u32_into` and `le::read_u64_into` with `utils::read_words` ([#38])
 - Replace fn `BlockRng::index` with `word_offset` ([#44])
 - Rename fn `BlockRng::generate_and_set` -> `reset_and_skip`; remove fn `reset` ([#44])
-- `RngCore` is now an extension trait of `TryRngCore<Error = Infallible>` ([#45])
+- `Rng` is now an extension trait of `TryRng<Error = Infallible>` ([#45])
 - Remove `UnwrapMut` and fns `unwrap_mut`, `unwrap_err`, retaining `UnwrapErr` ([#45], [#53])
-- Add error handling to `utils` functions over `TryRngCore` or via closure ([#45])
+- Add error handling to `utils` functions over `TryRng` or via closure ([#45])
 
 ### Other
 - Changed repository from [rust-random/rand] to [rust-random/core].
