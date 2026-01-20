@@ -250,6 +250,30 @@ impl<R: DerefMut> TryCryptoRng for R where R::Target: TryCryptoRng {}
 
 /// Wrapper around [`TryRngCore`] implementation which implements [`RngCore`]
 /// by panicking on potential errors.
+///
+/// # Examples
+///
+/// ```rust
+/// # use rand_core::{UnwrapErr, TryRngCore, RngCore};
+/// fn with_try_rng<R: TryRngCore>(mut rng: R) {
+///     // rng does not impl RngCore:
+///     let _ = rng.try_next_u32(); // okay
+///     // let _ = rng.next_u32(); // error
+///
+///     // An adapter borrowing rng:
+///     let _ = UnwrapErr(&mut rng).next_u32();
+///
+///     // An adapter moving rng:
+///     let mut rng = UnwrapErr(rng);
+///     let _ = rng.next_u32();
+/// }
+///
+/// fn call_with_unsized_try_rng<R: TryRngCore + ?Sized>(rng: &mut R) {
+///     // R is unsized, thus we must use &mut R:
+///     let mut rng = UnwrapErr(rng);
+///     let _ = rng.next_u32();
+/// }
+/// ```
 #[derive(Debug, Default, Clone, Copy, Eq, PartialEq, Hash)]
 pub struct UnwrapErr<R: TryRngCore>(pub R);
 
