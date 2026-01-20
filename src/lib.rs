@@ -89,7 +89,7 @@ where
 ///
 /// This is a convenient trait alias for <code>[TryCryptoRng]<Error = [Infallible]></code>.
 /// It is equivalent to the trait sum <code>[RngCore] + [TryCryptoRng]</code>.
-pub trait CryptoRng: TryCryptoRng<Error = Infallible> {}
+pub trait CryptoRng: RngCore + TryCryptoRng<Error = Infallible> {}
 
 impl<R> CryptoRng for R where R: TryCryptoRng<Error = Infallible> + ?Sized {}
 
