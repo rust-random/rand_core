@@ -253,7 +253,7 @@ impl<R: DerefMut> TryCryptoRng for R where R::Target: TryCryptoRng {}
 /// # Examples
 ///
 /// ```rust
-/// # use rand_core::{UnwrapErr, TryRngCore, RngCore};
+/// # use rand_core::{UnwrapErr, TryRng, Rng};
 /// fn with_try_rng<R: TryRng>(mut rng: R) {
 ///     // rng does not impl Rng:
 ///     let _ = rng.try_next_u32(); // okay
