@@ -13,7 +13,7 @@
     clippy::undocumented_unsafe_blocks
 )]
 
-use core::{fmt, ops::DerefMut};
+use core::ops::DerefMut;
 
 pub use core::convert::Infallible;
 
@@ -186,7 +186,7 @@ pub trait TryRng {
     /// The type returned in the event of a RNG error.
     ///
     /// Use type [`Infallible`] (re-exported by `rand_core`) for infallible implementations.
-    type Error: fmt::Debug + fmt::Display;
+    type Error: core::error::Error;
 
     /// Return the next random `u32`.
     fn try_next_u32(&mut self) -> Result<u32, Self::Error>;
