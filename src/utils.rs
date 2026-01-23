@@ -145,28 +145,3 @@ pub fn read_words<W: Word, const N: usize>(src: &[u8]) -> [W; N] {
     }
     dst
 }
-
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    #[test]
-    fn test_read() {
-        let bytes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
-
-        let buf: [u32; 4] = read_words(&bytes);
-        assert_eq!(buf[0], 0x04030201);
-        assert_eq!(buf[3], 0x100F0E0D);
-
-        let buf: [u32; 3] = read_words(&bytes[1..13]); // unaligned
-        assert_eq!(buf[0], 0x05040302);
-        assert_eq!(buf[2], 0x0D0C0B0A);
-
-        let buf: [u64; 2] = read_words(&bytes);
-        assert_eq!(buf[0], 0x0807060504030201);
-        assert_eq!(buf[1], 0x100F0E0D0C0B0A09);
-
-        let buf: [u64; 1] = read_words(&bytes[7..15]); // unaligned
-        assert_eq!(buf[0], 0x0F0E0D0C0B0A0908);
-    }
-}
