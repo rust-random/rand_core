@@ -1,3 +1,4 @@
+//! Tests for the `block` module items
 use rand_core::{
     SeedableRng,
     block::{BlockRng, Generator},

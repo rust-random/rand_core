@@ -1,3 +1,4 @@
+//! Tests for the `utils` module items
 use rand_core::{Infallible, Rng, TryRng, utils};
 
 struct DummyRng(u32);

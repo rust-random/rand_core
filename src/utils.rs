@@ -34,6 +34,9 @@
 //! In many cases, [`SeedableRng::Seed`] must be converted to `[u32; _]` or
 //! `[u64; _]`. [`read_words`] may be used for this.
 //!
+//! [`SeedableRng`]: crate::SeedableRng
+//! [`SeedableRng::Seed`]: crate::SeedableRng::Seed
+//!
 //! ## Example
 //!
 //! We demonstrate a simple multiplicative congruential generator (MCG), taken
@@ -83,9 +86,8 @@
 //! # assert_eq!(buf, [154, 23, 43, 68, 75]);
 //! ```
 
+use crate::TryRng;
 pub use crate::word::Word;
-#[allow(unused)]
-use crate::{SeedableRng, TryRng};
 
 /// Generate a `u64` using `next_u32`, little-endian order.
 #[inline]

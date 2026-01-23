@@ -1,3 +1,4 @@
+//! Main `rand_core` tests
 use rand_core::{CryptoRng, Infallible, Rng, SeedableRng, TryCryptoRng, TryRng, UnwrapErr, utils};
 
 #[test]
