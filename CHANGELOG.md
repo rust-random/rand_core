@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.10.0] - Unreleased
 
 ### Added
-- `SeedableRng::fork` methods ([#17])
+- `SeedableRng::{fork, try_fork}` methods ([#17])
 - `utils::Word` trait ([#34], [#38])
 - `BlockRng::reconstruct` and `BlockRng::remaining_results` methods ([#36])
 - Re-export of `core::convert::Infallible` ([#56])
