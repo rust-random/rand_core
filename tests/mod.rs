@@ -1,5 +1,4 @@
-use core::convert::Infallible;
-use rand_core::{CryptoRng, Rng, SeedableRng, TryCryptoRng, TryRng, UnwrapErr, utils};
+use rand_core::{CryptoRng, Infallible, Rng, SeedableRng, TryCryptoRng, TryRng, UnwrapErr, utils};
 
 #[test]
 fn test_seed_from_u64() {
