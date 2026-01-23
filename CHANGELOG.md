@@ -35,6 +35,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Re-export of `core::convert::Infallible` ([#56])
 
+### Changed
+- `TryRng::Error` is bound on `core::error::Error` instead of `Debug + Display`  ([#58])
+
 ### Other
 - Changed repository from [rust-random/rand] to [rust-random/core].
 
@@ -56,6 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#45]: https://github.com/rust-random/rand-core/pull/45
 [#53]: https://github.com/rust-random/rand-core/pull/53
 [#56]: https://github.com/rust-random/rand-core/pull/56
+[#58]: https://github.com/rust-random/rand-core/pull/58
 
 [rust-random/rand]: https://github.com/rust-random/rand
 [rust-random/core]: https://github.com/rust-random/core
