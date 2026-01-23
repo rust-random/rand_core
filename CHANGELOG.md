@@ -32,6 +32,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove `UnwrapMut` and fns `unwrap_mut`, `unwrap_err`, retaining `UnwrapErr` ([#45], [#53])
 - Add error handling to `utils` functions over `TryRng` or via closure ([#45])
 
+### Added
+- Re-export of `core::convert::Infallible` ([#56])
+
 ### Other
 - Changed repository from [rust-random/rand] to [rust-random/core].
 
@@ -52,6 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#44]: https://github.com/rust-random/rand-core/pull/44
 [#45]: https://github.com/rust-random/rand-core/pull/45
 [#53]: https://github.com/rust-random/rand-core/pull/53
+[#56]: https://github.com/rust-random/rand-core/pull/56
 
 [rust-random/rand]: https://github.com/rust-random/rand
 [rust-random/core]: https://github.com/rust-random/core
