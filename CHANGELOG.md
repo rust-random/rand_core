@@ -5,41 +5,48 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [0.10.0] - Unreleased
-### API changes
-- `RngCore` and `TryRngCore` are renamed to `Rng` and `TryRng` respectively ([#54])
-- Relax `Sized` bound on impls of `SeedableRng` ([rand#1641])
-- Move `rand_core::impls::*` to `rand_core::le` module ([rand#1667])
-- Use Edition 2024 and MSRV 1.85 ([rand#1668])
-- Remove fn `TryRng::read_adapter(..) -> RngReadAdapter` (replaced with `rand::RngReader`) ([rand#1669])
-- Remove feature `os_rng`, structs `OsRng` and `OsError` and fns `from_os_rng`, `try_from_os_rng` ([rand#1674])
-- Remove feature `std` ([rand#1674])
-- Removed dependency `getrandom` ([rand#1674])
-- Removed optional dependency `serde` ([#28])
-- Add `SeedableRng::fork` methods ([#17])
-- Rename trait `block::BlockRngCore` to `block::Generator` and associated type `Results` to `Output`; remove assoc. `type Item` and remove type bounds ([#26])
-- Add `fn drop` to trait `block::Generator` ([#35])
-- Remove `BlockRng64` ([#34])
-- Remove impl of `Rng` for `BlockRng`, making the latter more generic ([#34])
-- Add trait `le::Word` ([#34])
-- Add fn `BlockRng::reconstruct` and fn `BlockRng::remaining_results` ([#36])
-- Move `le::{Word, next_u64_via_u32}` to new `utils` module; remove `le` ([#38])
-- Replace `le::fill_bytes_via_next` with `utils::fill_bytes_via_next_word` ([#38])
-- Replace `le::next_u32_via_fill` and `le::next_u64_via_fill` with `utils::next_word_via_fill` ([#38])
-- Replace `le::read_u32_into` and `le::read_u64_into` with `utils::read_words` ([#38])
-- Replace fn `BlockRng::index` with `word_offset` ([#44])
-- Rename fn `BlockRng::generate_and_set` -> `reset_and_skip`; remove fn `reset` ([#44])
-- `Rng` is now an extension trait of `TryRng<Error = Infallible>` ([#45])
-- Remove `UnwrapMut` and fns `unwrap_mut`, `unwrap_err`, retaining `UnwrapErr` ([#45], [#53])
-- Add error handling to `utils` functions over `TryRng` or via closure ([#45])
 
 ### Added
+- `SeedableRng::fork` methods ([#17])
+- `le::Word` trait ([#34])
+- `BlockRng::reconstruct` and `BlockRng::remaining_results` methods ([#36])
 - Re-export of `core::convert::Infallible` ([#56])
+- `utils::{fill_bytes_via_next_word, next_word_via_fill, read_words}` functions ([#38])
+- `block::Generator::drop` method ([#35])
+- `BlockRng::word_offset` method ([#44])
 
 ### Changed
-- `TryRng::Error` is bound on `core::error::Error` instead of `Debug + Display`  ([#58])
+- `RngCore` and `TryRngCore` are renamed to `Rng` and `TryRng` respectively ([#54])
+- `Rng` is now an extension trait of `TryRng<Error = Infallible>` ([#45])
+- Relax `Sized` bound on impls of `SeedableRng` ([rand#1641])
+- Edition changed to 2024 and MSRV bumped to 1.85 ([rand#1668])
+- `TryRng::Error` is bound on `core::error::Error` instead of `Debug + Display` ([#58])
+- Move `rand_core::impls::*` to `rand_core::utils` module ([rand#1667], [#38])
+- `utils` functions to operate over `TryRng` or via closure ([#45])
+- Rename `BlockRng::generate_and_set` method to `reset_and_skip` ([#44])
+- Rename `block::BlockRngCore` trait to `block::Generator` ([#26])
+- Rename `BlockRngCore::Results` associated type to `Output` and remove type bounds on it ([#26])
+- Repository from [rust-random/rand] to [rust-random/rand_core]
 
-### Other
-- Changed repository from [rust-random/rand] to [rust-random/core].
+### Removed
+- `TryRng::read_adapter` method (replaced with `rand::RngReader`) ([rand#1669])
+- `os_rng` crate feature ([rand#1674])
+- `OsRng` and `OsError` structs ([rand#1674])
+- `SeedableRng::from_os_rng` and `SeedableRng::try_from_os_rng` methods ([rand#1674])
+- `getrandom` dependency ([rand#1674])
+- `std` crate feature ([rand#1674])
+- Optional `serde` dependency ([#28])
+- `le::fill_bytes_via_next` (replaced with `utils::fill_bytes_via_next_word`) ([#38])
+- `le::{next_u32_via_fill, next_u64_via_fill}` functions
+  (replaced with `utils::next_word_via_fill`) ([#38])
+- `le::{read_u32_into, read_u64_into}` (replaced with `utils::read_words`) ([#38])
+- `UnwrapMut` struct and `Rng::unwrap_mut` method ([#45])
+- `Rng::unwrap_err` method in favor of explicit wrapping in `UnwrapErr` ([#53])
+- Implementation of `Rng` for `BlockRng`, making the latter more generic ([#34])
+- `BlockRng64` struct ([#34])
+- `BlockRng::reset` method ([#44])
+- `BlockRng::index` method (replaced with `BlockRng::word_offset`) ([#44])
+- `Generator::Item` associated type ([#26])
 
 [0.10.0]: https://github.com/rust-random/core/compare/v0.9.3...HEAD
 
@@ -48,21 +55,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [rand#1668]: https://github.com/rust-random/rand/pull/1668
 [rand#1669]: https://github.com/rust-random/rand/pull/1669
 [rand#1674]: https://github.com/rust-random/rand/pull/1674
-[#17]: https://github.com/rust-random/rand-core/pull/17
-[#26]: https://github.com/rust-random/rand-core/pull/28
-[#28]: https://github.com/rust-random/rand-core/pull/28
-[#34]: https://github.com/rust-random/rand-core/pull/34
-[#35]: https://github.com/rust-random/rand-core/pull/35
-[#36]: https://github.com/rust-random/rand-core/pull/36
-[#38]: https://github.com/rust-random/rand-core/pull/38
-[#44]: https://github.com/rust-random/rand-core/pull/44
-[#45]: https://github.com/rust-random/rand-core/pull/45
-[#53]: https://github.com/rust-random/rand-core/pull/53
-[#56]: https://github.com/rust-random/rand-core/pull/56
-[#58]: https://github.com/rust-random/rand-core/pull/58
+[#17]: https://github.com/rust-random/rand_core/pull/17
+[#26]: https://github.com/rust-random/rand_core/pull/28
+[#28]: https://github.com/rust-random/rand_core/pull/28
+[#34]: https://github.com/rust-random/rand_core/pull/34
+[#35]: https://github.com/rust-random/rand_core/pull/35
+[#36]: https://github.com/rust-random/rand_core/pull/36
+[#38]: https://github.com/rust-random/rand_core/pull/38
+[#44]: https://github.com/rust-random/rand_core/pull/44
+[#45]: https://github.com/rust-random/rand_core/pull/45
+[#53]: https://github.com/rust-random/rand_core/pull/53
+[#56]: https://github.com/rust-random/rand_core/pull/56
+[#58]: https://github.com/rust-random/rand_core/pull/58
 
 [rust-random/rand]: https://github.com/rust-random/rand
-[rust-random/core]: https://github.com/rust-random/core
+[rust-random/rand_core]: https://github.com/rust-random/rand_core
 
 ## [0.9.3] - 2025-02-29
 ### Other
