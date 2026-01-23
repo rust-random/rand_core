@@ -8,10 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - `SeedableRng::{fork, try_fork}` methods ([#17])
-- `utils::Word` trait ([#34], [#38])
 - `BlockRng::reconstruct` and `BlockRng::remaining_results` methods ([#36])
 - Re-export of `core::convert::Infallible` ([#56])
-- `utils::{fill_bytes_via_next_word, next_word_via_fill, read_words}` functions ([#38])
 - `block::Generator::drop` method ([#35])
 - `BlockRng::word_offset` method ([#44])
 
@@ -21,8 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Rng` is now an extension trait of `TryRng<Error = Infallible>` ([#45])
 - Relax `Sized` bound on impls of `SeedableRng` ([rand#1641])
 - `TryRng::Error` is bound on `core::error::Error` instead of `Debug + Display` ([#58])
-- Move `rand_core::impls::*` to `rand_core::utils` module ([rand#1667], [#38])
-- `utils` functions to operate over `TryRng` or via closure ([#45])
+- Replaced `le` helper functions with new `utils` helpers ([rand#1667], [#34], [#38], [#45])
 - Rename `BlockRng::generate_and_set` method to `reset_and_skip` ([#44])
 - Rename `block::BlockRngCore` trait to `block::Generator` ([#26])
 - Rename `BlockRngCore::Results` associated type to `Output` and remove type bounds on it ([#26])
@@ -36,10 +33,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `getrandom` dependency ([rand#1674])
 - `std` crate feature ([rand#1674])
 - Optional `serde` dependency ([#28])
-- `le::fill_bytes_via_next` (replaced with `utils::fill_bytes_via_next_word`) ([#38])
-- `le::{next_u32_via_fill, next_u64_via_fill}` functions
-  (replaced with `utils::next_word_via_fill`) ([#38])
-- `le::{read_u32_into, read_u64_into}` (replaced with `utils::read_words`) ([#38])
 - `UnwrapMut` struct and `Rng::unwrap_mut` method ([#45])
 - `Rng::unwrap_err` method in favor of explicit wrapping in `UnwrapErr` ([#53])
 - Implementation of `Rng` for `BlockRng`, making the latter more generic ([#34])
