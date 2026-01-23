@@ -16,10 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `BlockRng::word_offset` method ([#44])
 
 ### Changed
+- Edition changed to 2024 and MSRV bumped to 1.85 ([rand#1668])
 - `RngCore` and `TryRngCore` are renamed to `Rng` and `TryRng` respectively ([#54])
 - `Rng` is now an extension trait of `TryRng<Error = Infallible>` ([#45])
 - Relax `Sized` bound on impls of `SeedableRng` ([rand#1641])
-- Edition changed to 2024 and MSRV bumped to 1.85 ([rand#1668])
 - `TryRng::Error` is bound on `core::error::Error` instead of `Debug + Display` ([#58])
 - Move `rand_core::impls::*` to `rand_core::utils` module ([rand#1667], [#38])
 - `utils` functions to operate over `TryRng` or via closure ([#45])
