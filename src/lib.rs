@@ -13,7 +13,9 @@
     clippy::undocumented_unsafe_blocks
 )]
 
-use core::{convert::Infallible, fmt, ops::DerefMut};
+use core::{fmt, ops::DerefMut};
+
+pub use core::convert::Infallible;
 
 pub mod block;
 pub mod utils;
@@ -183,7 +185,7 @@ impl<R> CryptoRng for R where R: TryCryptoRng<Error = Infallible> + ?Sized {}
 pub trait TryRng {
     /// The type returned in the event of a RNG error.
     ///
-    /// Use type [`core::convert::Infallible`] for infallible implementations.
+    /// Use type [`Infallible`] (re-exported by `rand_core`) for infallible implementations.
     type Error: fmt::Debug + fmt::Display;
 
     /// Return the next random `u32`.
