@@ -109,23 +109,6 @@ pub trait SeedableRng: Sized {
     /// all purposes. *Changing* the implementation of this function should be
     /// considered a value-breaking change.
     fn seed_from_u64(mut state: u64) -> Self {
-        // We use PCG32 to generate a u32 sequence, and copy to the seed
-        fn pcg32(state: &mut u64) -> [u8; 4] {
-            const MUL: u64 = 6364136223846793005;
-            const INC: u64 = 11634580027462260723;
-
-            // We advance the state first (to get away from the input value,
-            // in case it has low Hamming Weight).
-            *state = state.wrapping_mul(MUL).wrapping_add(INC);
-            let state = *state;
-
-            // Use PCG output function with to_le to generate x:
-            let xorshifted = (((state >> 18) ^ state) >> 27) as u32;
-            let rot = (state >> 59) as u32;
-            let x = xorshifted.rotate_right(rot);
-            x.to_le_bytes()
-        }
-
         let mut seed = Self::Seed::default();
         let mut iter = seed.as_mut().chunks_exact_mut(4);
         for chunk in &mut iter {
@@ -205,4 +188,21 @@ pub trait SeedableRng: Sized {
     {
         Self::try_from_rng(self)
     }
+}
+
+/// PCG32 generator function
+fn pcg32(state: &mut u64) -> [u8; 4] {
+    const MUL: u64 = 0x5851_F42D_4C95_7F2D;
+    const INC: u64 = 0xA176_54E4_6FBE_17F3;
+
+    // We advance the state first (to get away from the input value,
+    // in case it has low Hamming Weight).
+    *state = state.wrapping_mul(MUL).wrapping_add(INC);
+    let state = *state;
+
+    // Use PCG output function with to_le to generate x:
+    let xorshifted = (((state >> 18) ^ state) >> 27) as u32;
+    let rot = (state >> 59) as u32;
+    let x = xorshifted.rotate_right(rot);
+    x.to_le_bytes()
 }
