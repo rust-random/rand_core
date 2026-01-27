@@ -1,6 +1,6 @@
 use crate::{Infallible, TryCryptoRng, TryRng};
 
-/// Wrapper around [`TryRng`] implementation which implements [`Rng`]
+/// Wrapper around [`TryRng`] implementation which implements [`Rng`][crate::Rng]
 /// by panicking on potential errors.
 ///
 /// # Examples
