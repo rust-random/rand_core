@@ -191,9 +191,6 @@ pub trait TryRng {
     fn try_fill_bytes(&mut self, dst: &mut [u8]) -> Result<(), Self::Error>;
 }
 
-// Note that, unfortunately, this blanket impl prevents us from implementing
-// `TryRng` for types which can be dereferenced to `TryRng`, i.e. `TryRng`
-// will not be automatically implemented for `&mut R`, `Box<R>`, etc.
 impl<R: DerefMut> TryRng for R
 where
     R::Target: TryRng,
