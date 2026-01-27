@@ -11,8 +11,6 @@ use crate::{Rng, TryRng};
 /// a specific algorithm are usually tested for reproducibility against a
 /// reference vector, while `SmallRng` and `StdRng` specifically opt out of
 /// reproducibility guarantees.
-///
-/// [`rand`]: https://docs.rs/rand
 pub trait SeedableRng: Sized {
     /// Seed type, which is restricted to types mutably-dereferenceable as `u8`
     /// arrays (we recommend `[u8; N]` for some `N`).
