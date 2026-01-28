@@ -1,7 +1,7 @@
 //! Tests for the `block` module items
 use rand_core::{
     SeedableRng,
-    block::{BlockRng, Generator},
+    block::{BlockBuffer, Generator},
 };
 
 const RESULTS_LEN: usize = 16;
@@ -34,7 +34,7 @@ impl SeedableRng for DummyRng {
 
 #[test]
 fn blockrng_next_u32_vs_next_u64() {
-    let mut rng1 = BlockRng::new(DummyRng::from_seed([1, 2, 3, 4]));
+    let mut rng1 = BlockBuffer::new(DummyRng::from_seed([1, 2, 3, 4]));
     let mut rng2 = rng1.clone();
     let mut rng3 = rng1.clone();
 
@@ -58,7 +58,7 @@ fn blockrng_next_u32_vs_next_u64() {
 
 #[test]
 fn blockrng_next_u64() {
-    let mut rng = BlockRng::new(DummyRng::from_seed([1, 2, 3, 4]));
+    let mut rng = BlockBuffer::new(DummyRng::from_seed([1, 2, 3, 4]));
     let result_size = RESULTS_LEN;
     for _i in 0..result_size / 2 - 1 {
         rng.next_u64_from_u32();

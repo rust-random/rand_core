@@ -1,21 +1,21 @@
-//! The [`Generator`] trait and [`BlockRng`]
+//! The [`Generator`] trait and [`BlockBuffer`]
 //!
 //! Trait [`Generator`] may be implemented by block-generators; that is PRNGs
 //! whose output is a *block* of words, such as `[u32; 16]`.
 //!
-//! The struct [`BlockRng`] wraps such a [`Generator`] together with an output
-//! buffer and implements several methods (e.g. [`BlockRng::next_word`]) to
+//! The struct [`BlockBuffer`] wraps such a [`Generator`] together with an output
+//! buffer and implements several methods (e.g. [`BlockBuffer::next_word`]) to
 //! assist in the implementation of [`TryRng`]. Note that (unlike in earlier
-//! versions of `rand_core`) [`BlockRng`] itself does not implement [`TryRng`]
+//! versions of `rand_core`) [`BlockBuffer`] itself does not implement [`TryRng`]
 //! since in practice we found it was always beneficial to use a wrapper type
-//! over [`BlockRng`].
+//! over [`BlockBuffer`].
 //!
 //! # Example
 //!
 //! ```
 //! use core::convert::Infallible;
 //! use rand_core::{Rng, SeedableRng, TryRng};
-//! use rand_core::block::{Generator, BlockRng};
+//! use rand_core::block::{Generator, BlockBuffer};
 //!
 //! struct MyRngCore {
 //!     // Generator state ...
@@ -31,8 +31,8 @@
 //!     }
 //! }
 //!
-//! // Our RNG is a wrapper over BlockRng
-//! pub struct MyRng(BlockRng<MyRngCore>);
+//! // Our RNG is a wrapper over BlockBuffer
+//! pub struct MyRng(BlockBuffer<MyRngCore>);
 //!
 //! impl SeedableRng for MyRng {
 //!     type Seed = [u8; 32];
@@ -41,7 +41,7 @@
 //!             // ...
 //! #            state: rand_core::utils::read_words(&seed),
 //!         };
-//!         MyRng(BlockRng::new(core))
+//!         MyRng(BlockBuffer::new(core))
 //!     }
 //! }
 //!
@@ -111,38 +111,38 @@ pub trait Generator {
 ///
 /// [`Rng`]: crate::Rng
 #[derive(Clone)]
-pub struct BlockRng<G: Generator> {
+pub struct BlockBuffer<G: Generator> {
     results: G::Output,
     /// The *core* part of the RNG, implementing the `generate` function.
     pub core: G,
 }
 
 // Custom Debug implementation that does not expose the contents of `results`.
-impl<G> fmt::Debug for BlockRng<G>
+impl<G> fmt::Debug for BlockBuffer<G>
 where
     G: Generator + fmt::Debug,
 {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-        fmt.debug_struct("BlockRng")
+        fmt.debug_struct("BlockBuffer")
             .field("core", &self.core)
             .finish_non_exhaustive()
     }
 }
 
-impl<G: Generator> Drop for BlockRng<G> {
+impl<G: Generator> Drop for BlockBuffer<G> {
     fn drop(&mut self) {
         self.core.drop(&mut self.results);
     }
 }
 
-impl<W: Word + Default, const N: usize, G: Generator<Output = [W; N]>> BlockRng<G> {
-    /// Create a new `BlockRng` from an existing RNG implementing
+impl<W: Word + Default, const N: usize, G: Generator<Output = [W; N]>> BlockBuffer<G> {
+    /// Create a new `BlockBuffer` from an existing RNG implementing
     /// `Generator`. Results will be generated on first use.
     #[inline]
-    pub fn new(core: G) -> BlockRng<G> {
+    pub fn new(core: G) -> BlockBuffer<G> {
         let mut results = [W::default(); N];
         results[0] = W::from_usize(N);
-        BlockRng { core, results }
+        BlockBuffer { core, results }
     }
 
     /// Reconstruct from a core and a remaining-results buffer.
@@ -157,14 +157,14 @@ impl<W: Word + Default, const N: usize, G: Generator<Output = [W; N]>> BlockRng<
             let index = N - remaining_results.len();
             results[index..].copy_from_slice(remaining_results);
             results[0] = W::from_usize(index);
-            Some(BlockRng { results, core })
+            Some(BlockBuffer { results, core })
         } else {
             None
         }
     }
 }
 
-impl<W: Word, const N: usize, G: Generator<Output = [W; N]>> BlockRng<G> {
+impl<W: Word, const N: usize, G: Generator<Output = [W; N]>> BlockBuffer<G> {
     /// Get the index into the result buffer.
     ///
     /// If this is equal to or larger than the size of the result buffer then
@@ -242,7 +242,7 @@ impl<W: Word, const N: usize, G: Generator<Output = [W; N]>> BlockRng<G> {
     }
 }
 
-impl<const N: usize, G: Generator<Output = [u32; N]>> BlockRng<G> {
+impl<const N: usize, G: Generator<Output = [u32; N]>> BlockBuffer<G> {
     /// Generate a `u64` from two `u32` words
     #[inline]
     pub fn next_u64_from_u32(&mut self) -> u64 {
@@ -269,7 +269,7 @@ impl<const N: usize, G: Generator<Output = [u32; N]>> BlockRng<G> {
     }
 }
 
-impl<W: Word, const N: usize, G: Generator<Output = [W; N]>> BlockRng<G> {
+impl<W: Word, const N: usize, G: Generator<Output = [W; N]>> BlockBuffer<G> {
     /// Fill `dest`
     #[inline]
     pub fn fill_bytes(&mut self, dest: &mut [u8]) {
