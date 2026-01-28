@@ -3,12 +3,9 @@
 //! Trait [`Generator`] may be implemented by block-generators; that is PRNGs
 //! whose output is a *block* of words, such as `[u32; 16]`.
 //!
-//! The struct [`BlockBuffer`] wraps such a [`Generator`] together with an output
-//! buffer and implements several methods (e.g. [`BlockBuffer::next_word`]) to
-//! assist in the implementation of [`TryRng`]. Note that (unlike in earlier
-//! versions of `rand_core`) [`BlockBuffer`] itself does not implement [`TryRng`]
-//! since in practice we found it was always beneficial to use a wrapper type
-//! over [`BlockBuffer`].
+//! The struct [`BlockBuffer`] may be used with a [`Generator`] to implement
+//! [`TryRng`]. Note that (unlike in earlier versions of `rand_core`)
+//! [`BlockBuffer`] itself does not implement [`TryRng`].
 //!
 //! # Example
 //!
@@ -32,16 +29,21 @@
 //! }
 //!
 //! // Our RNG is a wrapper over BlockBuffer
-//! pub struct MyRng(BlockBuffer<MyRngCore>);
+//! pub struct MyRng {
+//!     core: MyRngCore,
+//!     buffer: BlockBuffer<MyRngCore>,
+//! }
 //!
 //! impl SeedableRng for MyRng {
 //!     type Seed = [u8; 32];
 //!     fn from_seed(seed: Self::Seed) -> Self {
-//!         let core = MyRngCore {
-//!             // ...
-//! #            state: rand_core::utils::read_words(&seed),
-//!         };
-//!         MyRng(BlockBuffer::new(core))
+//!         MyRng {
+//!             core: MyRngCore {
+//!                 // ...
+//! #               state: rand_core::utils::read_words(&seed),
+//!             },
+//!             buffer: BlockBuffer::new(),
+//!         }
 //!     }
 //! }
 //!
@@ -50,17 +52,17 @@
 //!
 //!     #[inline]
 //!     fn try_next_u32(&mut self) -> Result<u32, Infallible> {
-//!         Ok(self.0.next_word())
+//!         Ok(self.buffer.next_word(&mut self.core))
 //!     }
 //!
 //!     #[inline]
 //!     fn try_next_u64(&mut self) -> Result<u64, Infallible> {
-//!         Ok(self.0.next_u64_from_u32())
+//!         Ok(self.buffer.next_u64_from_u32(&mut self.core))
 //!     }
 //!
 //!     #[inline]
 //!     fn try_fill_bytes(&mut self, bytes: &mut [u8]) -> Result<(), Infallible> {
-//!         Ok(self.0.fill_bytes(bytes))
+//!         Ok(self.buffer.fill_bytes(&mut self.core, bytes))
 //!     }
 //! }
 //!
@@ -89,9 +91,10 @@ pub trait Generator {
     fn generate(&mut self, output: &mut Self::Output);
 }
 
-/// RNG functionality for a block [`Generator`]
+/// Buffer providing RNG methods over a [`Generator`]
 ///
-/// This type encompasses a [`Generator`] [`core`](Self::core) and a buffer.
+/// This type does not encapuslate a [`Generator`], but is designed to be used
+/// alongside one.
 /// It provides optimized implementations of methods required by an [`Rng`].
 ///
 /// All values are consumed in-order of generation. No whole words (e.g. `u32`
@@ -104,18 +107,16 @@ pub trait Generator {
 #[allow(missing_debug_implementations)]
 pub struct BlockBuffer<G: Generator> {
     results: G::Output,
-    /// The *core* part of the RNG, implementing the `generate` function.
-    pub core: G,
 }
 
 impl<W: Word + Default, const N: usize, G: Generator<Output = [W; N]>> BlockBuffer<G> {
     /// Create a new `BlockBuffer` from an existing RNG implementing
     /// `Generator`. Results will be generated on first use.
     #[inline]
-    pub fn new(core: G) -> BlockBuffer<G> {
+    pub fn new() -> BlockBuffer<G> {
         let mut results = [W::default(); N];
         results[0] = W::from_usize(N);
-        BlockBuffer { core, results }
+        BlockBuffer { results }
     }
 
     /// Reconstruct from a core and a remaining-results buffer.
@@ -124,13 +125,13 @@ impl<W: Word + Default, const N: usize, G: Generator<Output = [W; N]>> BlockBuff
     /// [`Self::remaining_results`].
     ///
     /// Returns `None` if `remaining_results` is too long.
-    pub fn reconstruct(core: G, remaining_results: &[W]) -> Option<Self> {
+    pub fn reconstruct(remaining_results: &[W]) -> Option<Self> {
         let mut results = [W::default(); N];
         if remaining_results.len() < N {
             let index = N - remaining_results.len();
             results[index..].copy_from_slice(remaining_results);
             results[0] = W::from_usize(index);
-            Some(BlockBuffer { results, core })
+            Some(BlockBuffer { results })
         } else {
             None
         }
@@ -165,14 +166,14 @@ impl<W: Word, const N: usize, G: Generator<Output = [W; N]>> BlockBuffer<G> {
     /// This method will panic if `n >= N` where `N` is the buffer size (in
     /// words).
     #[inline]
-    pub fn reset_and_skip(&mut self, n: usize) {
+    pub fn reset_and_skip(&mut self, core: &mut G, n: usize) {
         if n == 0 {
             self.set_index(N);
             return;
         }
 
         assert!(n < N);
-        self.core.generate(&mut self.results);
+        core.generate(&mut self.results);
         self.set_index(n);
     }
 
@@ -202,10 +203,10 @@ impl<W: Word, const N: usize, G: Generator<Output = [W; N]>> BlockBuffer<G> {
 
     /// Generate the next word (e.g. `u32`)
     #[inline]
-    pub fn next_word(&mut self) -> W {
+    pub fn next_word(&mut self, core: &mut G) -> W {
         let mut index = self.index();
         if index >= N {
-            self.core.generate(&mut self.results);
+            core.generate(&mut self.results);
             index = 0;
         }
 
@@ -218,7 +219,7 @@ impl<W: Word, const N: usize, G: Generator<Output = [W; N]>> BlockBuffer<G> {
 impl<const N: usize, G: Generator<Output = [u32; N]>> BlockBuffer<G> {
     /// Generate a `u64` from two `u32` words
     #[inline]
-    pub fn next_u64_from_u32(&mut self) -> u64 {
+    pub fn next_u64_from_u32(&mut self, core: &mut G) -> u64 {
         let index = self.index();
         let mut new_index;
         let (mut lo, mut hi);
@@ -228,7 +229,7 @@ impl<const N: usize, G: Generator<Output = [u32; N]>> BlockBuffer<G> {
             new_index = index + 2;
         } else {
             lo = self.results[N - 1];
-            self.core.generate(&mut self.results);
+            core.generate(&mut self.results);
             hi = self.results[0];
             new_index = 1;
             if index >= N {
@@ -245,12 +246,12 @@ impl<const N: usize, G: Generator<Output = [u32; N]>> BlockBuffer<G> {
 impl<W: Word, const N: usize, G: Generator<Output = [W; N]>> BlockBuffer<G> {
     /// Fill `dest`
     #[inline]
-    pub fn fill_bytes(&mut self, dest: &mut [u8]) {
+    pub fn fill_bytes(&mut self, core: &mut G, dest: &mut [u8]) {
         let mut read_len = 0;
         let mut index = self.index();
         while read_len < dest.len() {
             if index >= N {
-                self.core.generate(&mut self.results);
+                core.generate(&mut self.results);
                 index = 0;
             }
 
