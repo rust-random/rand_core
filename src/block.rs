@@ -42,7 +42,7 @@
 //!                 // ...
 //! #               state: rand_core::utils::read_words(&seed),
 //!             },
-//!             buffer: BlockBuffer::new(),
+//!             buffer: BlockBuffer::default(),
 //!         }
 //!     }
 //! }
@@ -109,16 +109,16 @@ pub struct BlockBuffer<G: BlockRng> {
     results: G::Output,
 }
 
-impl<W: Word + Default, const N: usize, G: BlockRng<Output = [W; N]>> BlockBuffer<G> {
-    /// Create a new `BlockBuffer` from an existing RNG implementing
-    /// [`BlockRng`]. Results will be generated on first use.
+impl<W: Word + Default, const N: usize, G: BlockRng<Output = [W; N]>> Default for BlockBuffer<G> {
     #[inline]
-    pub fn new() -> BlockBuffer<G> {
+    fn default() -> BlockBuffer<G> {
         let mut results = [W::default(); N];
         results[0] = W::from_usize(N);
         BlockBuffer { results }
     }
+}
 
+impl<W: Word + Default, const N: usize, G: BlockRng<Output = [W; N]>> BlockBuffer<G> {
     /// Reconstruct from a core and a remaining-results buffer.
     ///
     /// This may be used to deserialize using a `core` and the output of

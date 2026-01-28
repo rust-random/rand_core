@@ -37,7 +37,7 @@ fn blockrng_next_u32_vs_next_u64() {
     let mut core1 = DummyRng::from_seed([1, 2, 3, 4]);
     let mut core2 = core1.clone();
     let mut core3 = core1.clone();
-    let mut rng1 = BlockBuffer::new();
+    let mut rng1 = BlockBuffer::default();
     let mut rng2 = rng1.clone();
     let mut rng3 = rng1.clone();
 
@@ -62,7 +62,7 @@ fn blockrng_next_u32_vs_next_u64() {
 #[test]
 fn blockrng_next_u64() {
     let mut core = DummyRng::from_seed([1, 2, 3, 4]);
-    let mut rng = BlockBuffer::new();
+    let mut rng = BlockBuffer::default();
     let result_size = RESULTS_LEN;
     for _i in 0..result_size / 2 - 1 {
         rng.next_u64_from_u32(&mut core);
