@@ -4,28 +4,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.10.0] - Unreleased
+## [0.10.0] - 2026-02-01
 
-### Added
-- `SeedableRng::{fork, try_fork}` methods ([#17])
-- `BlockRng::reconstruct` and `BlockRng::remaining_results` methods ([#36])
-- Re-export of `core::convert::Infallible` ([#56])
-- `block::Generator::drop` method ([#35])
-- `BlockRng::word_offset` method ([#44])
+This release makes a number of significant changes which we hope will be the
+last significant breakage before 1.0. Code has moved from the [rust-random/rand]
+repository to its own [rust-random/rand_core].
 
-### Changed
+### User-facing API changes
+
+#### Changed
 - Edition changed to 2024 and MSRV bumped to 1.85 ([rand#1668])
 - `RngCore` and `TryRngCore` are renamed to `Rng` and `TryRng` respectively ([#54])
 - `Rng` is now an extension trait of `TryRng<Error = Infallible>` ([#45])
-- Relax `Sized` bound on impls of `SeedableRng` ([rand#1641])
 - `TryRng::Error` is bound on `core::error::Error` instead of `Debug + Display` ([#58])
-- Replaced `le` helper functions with new `utils` helpers ([rand#1667], [#34], [#38], [#45])
-- Rename `BlockRng::generate_and_set` method to `reset_and_skip` ([#44])
-- Rename `block::BlockRngCore` trait to `block::Generator` ([#26])
-- Rename `BlockRngCore::Results` associated type to `Output` and remove type bounds on it ([#26])
-- Repository from [rust-random/rand] to [rust-random/rand_core]
+- Relax `Sized` bound on impls of `SeedableRng` ([rand#1641])
 
-### Removed
+#### Added
+- `SeedableRng::{fork, try_fork}` methods ([#17])
+- Re-export of `core::convert::Infallible` ([#56])
+
+#### Removed
 - `TryRng::read_adapter` method (replaced with `rand::RngReader`) ([rand#1669])
 - `os_rng` crate feature ([rand#1674])
 - `OsRng` and `OsError` structs ([rand#1674])
@@ -35,6 +33,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Optional `serde` dependency ([#28])
 - `UnwrapMut` struct and `Rng::unwrap_mut` method ([#45])
 - `Rng::unwrap_err` method in favor of explicit wrapping in `UnwrapErr` ([#53])
+
+### API changes to PRNG implementation helpers
+
+### Added
+- `BlockRng::reconstruct` and `BlockRng::remaining_results` methods ([#36])
+- `block::Generator::drop` method ([#35])
+- `BlockRng::word_offset` method ([#44])
+
+### Changed
+- Replaced `le` helper functions with new `utils` helpers ([rand#1667], [#34], [#38], [#45])
+- Rename `BlockRng::generate_and_set` method to `reset_and_skip` ([#44])
+- Rename `block::BlockRngCore` trait to `block::Generator` ([#26])
+- Rename `BlockRngCore::Results` associated type to `Output` and remove type bounds on it ([#26])
+
+### Removed
 - Implementation of `Rng` for `BlockRng`, making the latter more generic ([#34])
 - `BlockRng64` struct ([#34])
 - `BlockRng::reset` method ([#44])
@@ -59,6 +72,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#44]: https://github.com/rust-random/rand_core/pull/44
 [#45]: https://github.com/rust-random/rand_core/pull/45
 [#53]: https://github.com/rust-random/rand_core/pull/53
+[#54]: https://github.com/rust-random/rand_core/pull/54
 [#56]: https://github.com/rust-random/rand_core/pull/56
 [#58]: https://github.com/rust-random/rand_core/pull/58
 [#69]: https://github.com/rust-random/rand_core/pull/69
