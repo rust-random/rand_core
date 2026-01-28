@@ -34,24 +34,22 @@ impl<R: TryRng> TryRng for UnwrapErr<R> {
 
     #[inline]
     fn try_next_u32(&mut self) -> Result<u32, Self::Error> {
-        self.0
-            .try_next_u32()
-            .map_err(|err| panic!("rand_core::UnwrapErr: failed to unwrap: {err}"))
+        self.0.try_next_u32().map_err(panic_msg)
     }
 
     #[inline]
     fn try_next_u64(&mut self) -> Result<u64, Self::Error> {
-        self.0
-            .try_next_u64()
-            .map_err(|err| panic!("rand_core::UnwrapErr: failed to unwrap: {err}"))
+        self.0.try_next_u64().map_err(panic_msg)
     }
 
     #[inline]
     fn try_fill_bytes(&mut self, dst: &mut [u8]) -> Result<(), Self::Error> {
-        self.0
-            .try_fill_bytes(dst)
-            .map_err(|err| panic!("rand_core::UnwrapErr: failed to unwrap: {err}"))
+        self.0.try_fill_bytes(dst).map_err(panic_msg)
     }
+}
+
+fn panic_msg(err: impl core::error::Error) -> Infallible {
+    panic!("rand_core::UnwrapErr: failed to unwrap: {err}")
 }
 
 impl<R: TryCryptoRng> TryCryptoRng for UnwrapErr<R> {}
