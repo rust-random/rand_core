@@ -75,7 +75,6 @@
 //! [`SeedableRng`]: crate::SeedableRng
 
 use crate::utils::Word;
-use core::fmt;
 
 /// A random (block) generator
 pub trait Generator {
@@ -102,22 +101,11 @@ pub trait Generator {
 ///
 /// [`Rng`]: crate::Rng
 #[derive(Clone)]
+#[allow(missing_debug_implementations)]
 pub struct BlockBuffer<G: Generator> {
     results: G::Output,
     /// The *core* part of the RNG, implementing the `generate` function.
     pub core: G,
-}
-
-// Custom Debug implementation that does not expose the contents of `results`.
-impl<G> fmt::Debug for BlockBuffer<G>
-where
-    G: Generator + fmt::Debug,
-{
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-        fmt.debug_struct("BlockBuffer")
-            .field("core", &self.core)
-            .finish_non_exhaustive()
-    }
 }
 
 impl<W: Word + Default, const N: usize, G: Generator<Output = [W; N]>> BlockBuffer<G> {
