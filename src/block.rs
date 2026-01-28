@@ -1,9 +1,9 @@
-//! The [`Generator`] trait and [`BlockBuffer`]
+//! The [`BlockRng`] trait and [`BlockBuffer`]
 //!
-//! Trait [`Generator`] may be implemented by block-generators; that is PRNGs
+//! Trait [`BlockRng`] may be implemented by block-generators; that is PRNGs
 //! whose output is a *block* of words, such as `[u32; 16]`.
 //!
-//! The struct [`BlockBuffer`] may be used with a [`Generator`] to implement
+//! The struct [`BlockBuffer`] may be used with a [`BlockRng`] to implement
 //! [`TryRng`]. Note that (unlike in earlier versions of `rand_core`)
 //! [`BlockBuffer`] itself does not implement [`TryRng`].
 //!
@@ -12,14 +12,14 @@
 //! ```
 //! use core::convert::Infallible;
 //! use rand_core::{Rng, SeedableRng, TryRng};
-//! use rand_core::block::{Generator, BlockBuffer};
+//! use rand_core::block::{BlockRng, BlockBuffer};
 //!
 //! struct MyRngCore {
 //!     // Generator state ...
 //! #    state: [u32; 8],
 //! }
 //!
-//! impl Generator for MyRngCore {
+//! impl BlockRng for MyRngCore {
 //!     type Output = [u32; 8];
 //!
 //!     fn generate(&mut self, output: &mut Self::Output) {
@@ -79,7 +79,7 @@
 use crate::utils::Word;
 
 /// A random (block) generator
-pub trait Generator {
+pub trait BlockRng {
     /// The output type.
     ///
     /// For use with [`rand_core::block`](crate::block) code this must be `[u32; _]` or `[u64; _]`.
@@ -91,9 +91,9 @@ pub trait Generator {
     fn generate(&mut self, output: &mut Self::Output);
 }
 
-/// Buffer providing RNG methods over a [`Generator`]
+/// Buffer providing RNG methods over a [`BlockRng`]
 ///
-/// This type does not encapuslate a [`Generator`], but is designed to be used
+/// This type does not encapuslate a [`BlockRng`], but is designed to be used
 /// alongside one.
 /// It provides optimized implementations of methods required by an [`Rng`].
 ///
@@ -105,13 +105,13 @@ pub trait Generator {
 /// [`Rng`]: crate::Rng
 #[derive(Clone)]
 #[allow(missing_debug_implementations)]
-pub struct BlockBuffer<G: Generator> {
+pub struct BlockBuffer<G: BlockRng> {
     results: G::Output,
 }
 
-impl<W: Word + Default, const N: usize, G: Generator<Output = [W; N]>> BlockBuffer<G> {
+impl<W: Word + Default, const N: usize, G: BlockRng<Output = [W; N]>> BlockBuffer<G> {
     /// Create a new `BlockBuffer` from an existing RNG implementing
-    /// `Generator`. Results will be generated on first use.
+    /// [`BlockRng`]. Results will be generated on first use.
     #[inline]
     pub fn new() -> BlockBuffer<G> {
         let mut results = [W::default(); N];
@@ -138,7 +138,7 @@ impl<W: Word + Default, const N: usize, G: Generator<Output = [W; N]>> BlockBuff
     }
 }
 
-impl<W: Word, const N: usize, G: Generator<Output = [W; N]>> BlockBuffer<G> {
+impl<W: Word, const N: usize, G: BlockRng<Output = [W; N]>> BlockBuffer<G> {
     /// Get the index into the result buffer.
     ///
     /// If this is equal to or larger than the size of the result buffer then
@@ -190,7 +190,7 @@ impl<W: Word, const N: usize, G: Generator<Output = [W; N]>> BlockBuffer<G> {
     /// Access the unused part of the results buffer
     ///
     /// The length of the returned slice is guaranteed to be less than the
-    /// length of `<Self as Generator>::Output` (i.e. less than `N` where
+    /// length of `<Self as BlockRng>::Output` (i.e. less than `N` where
     /// `Output = [W; N]`).
     ///
     /// This is a low-level interface intended for serialization.
@@ -216,7 +216,7 @@ impl<W: Word, const N: usize, G: Generator<Output = [W; N]>> BlockBuffer<G> {
     }
 }
 
-impl<const N: usize, G: Generator<Output = [u32; N]>> BlockBuffer<G> {
+impl<const N: usize, G: BlockRng<Output = [u32; N]>> BlockBuffer<G> {
     /// Generate a `u64` from two `u32` words
     #[inline]
     pub fn next_u64_from_u32(&mut self, core: &mut G) -> u64 {
@@ -243,7 +243,7 @@ impl<const N: usize, G: Generator<Output = [u32; N]>> BlockBuffer<G> {
     }
 }
 
-impl<W: Word, const N: usize, G: Generator<Output = [W; N]>> BlockBuffer<G> {
+impl<W: Word, const N: usize, G: BlockRng<Output = [W; N]>> BlockBuffer<G> {
     /// Fill `dest`
     #[inline]
     pub fn fill_bytes(&mut self, core: &mut G, dest: &mut [u8]) {

@@ -1,7 +1,7 @@
 //! Tests for the `block` module items
 use rand_core::{
     SeedableRng,
-    block::{BlockBuffer, Generator},
+    block::{BlockBuffer, BlockRng},
 };
 
 const RESULTS_LEN: usize = 16;
@@ -11,7 +11,7 @@ struct DummyRng {
     counter: u32,
 }
 
-impl Generator for DummyRng {
+impl BlockRng for DummyRng {
     type Output = [u32; RESULTS_LEN];
 
     fn generate(&mut self, output: &mut Self::Output) {
