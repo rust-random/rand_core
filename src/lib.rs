@@ -129,8 +129,9 @@ impl<R> CryptoRng for R where R: TryCryptoRng<Error = Infallible> + ?Sized {}
 /// implementation should ensure its period is sufficiently long that no
 /// anomalies are likely to appear in usage and/or document its limitations.
 ///
-/// For more on PRNG quality and period, see
-/// [The Rust Rand Book: Quality](https://rust-random.github.io/book/guide-rngs.html#quality).
+/// For more on PRNG quality and period, see [The Rust Rand Book: Quality][0].
+///
+/// [0]: https://rust-random.github.io/book/guide-rngs.html#quality
 ///
 /// ### Reproducibility
 ///
@@ -138,7 +139,9 @@ impl<R> CryptoRng for R where R: TryCryptoRng<Error = Infallible> + ?Sized {}
 /// *portable, reproducible* output, i.e. fix Endianness when converting values
 /// to avoid platform differences, and avoid making any changes which affect
 /// output (except by communicating that the release has breaking changes).
-/// See also [The Rust Rand Book: Reproducibility](https://rust-random.github.io/book/crate-reprod.html).
+/// See also [The Rust Rand Book: Reproducibility][1].
+///
+/// [1]: https://rust-random.github.io/book/crate-reprod.html
 ///
 /// # Usage
 ///

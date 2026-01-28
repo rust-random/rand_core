@@ -40,8 +40,10 @@
 //! ## Example
 //!
 //! We demonstrate a simple multiplicative congruential generator (MCG), taken
-//! from M.E. O'Neill's blog post
-//! [Does It Beat the Minimal Standard?](https://www.pcg-random.org/posts/does-it-beat-the-minimal-standard.html).
+//! from M.E. O'Neill's blog post [Does It Beat the Minimal Standard?][0].
+//!
+//! [0]: https://www.pcg-random.org/posts/does-it-beat-the-minimal-standard.html
+//!
 //! ```
 //! use core::convert::Infallible;
 //! use rand_core::{Rng, SeedableRng, TryRng, utils};
