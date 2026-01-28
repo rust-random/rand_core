@@ -88,15 +88,6 @@ pub trait Generator {
     ///
     /// This must fill `output` with random data.
     fn generate(&mut self, output: &mut Self::Output);
-
-    /// Destruct the output buffer
-    ///
-    /// This method is called on [`Drop`] of the [`Self::Output`] buffer.
-    /// The default implementation does nothing.
-    #[inline]
-    fn drop(&mut self, output: &mut Self::Output) {
-        let _ = output;
-    }
 }
 
 /// RNG functionality for a block [`Generator`]
@@ -126,12 +117,6 @@ where
         fmt.debug_struct("BlockBuffer")
             .field("core", &self.core)
             .finish_non_exhaustive()
-    }
-}
-
-impl<G: Generator> Drop for BlockBuffer<G> {
-    fn drop(&mut self) {
-        self.core.drop(&mut self.results);
     }
 }
 
