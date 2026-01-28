@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `BlockRng::reset` method ([#44])
 - `BlockRng::index` method (replaced with `BlockRng::word_offset`) ([#44])
 - `Generator::Item` associated type ([#26])
+- `CryptoBlockRng` ([#69])
 
 [0.10.0]: https://github.com/rust-random/rand_core/compare/v0.9.3...HEAD
 
@@ -60,6 +61,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [#53]: https://github.com/rust-random/rand_core/pull/53
 [#56]: https://github.com/rust-random/rand_core/pull/56
 [#58]: https://github.com/rust-random/rand_core/pull/58
+[#69]: https://github.com/rust-random/rand_core/pull/69
 
 [rust-random/rand]: https://github.com/rust-random/rand
 [rust-random/rand_core]: https://github.com/rust-random/rand_core

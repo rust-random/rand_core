@@ -1,8 +1,7 @@
 //! The [`Generator`] trait and [`BlockRng`]
 //!
-//! Trait [`Generator`] and marker trait [`CryptoGenerator`] may be implemented
-//! by block-generators; that is PRNGs whose output is a *block* of words, such
-//! as `[u32; 16]`.
+//! Trait [`Generator`] may be implemented by block-generators; that is PRNGs
+//! whose output is a *block* of words, such as `[u32; 16]`.
 //!
 //! The struct [`BlockRng`] wraps such a [`Generator`] together with an output
 //! buffer and implements several methods (e.g. [`BlockRng::next_word`]) to
@@ -72,17 +71,8 @@
 //! # assert_eq!(rng.next_u32(), 1171109249);
 //! ```
 //!
-//! # ReseedingRng
-//!
-//! The [`Generator`] trait supports usage of [`rand::rngs::ReseedingRng`].
-//! This requires that [`SeedableRng`] be implemented on the "core" generator.
-//! Additionally, it may be useful to implement [`CryptoGenerator`].
-//! (This is in addition to any implementations on an [`TryRng`] type.)
-//!
-//! [`Generator`]: crate::block::Generator
 //! [`TryRng`]: crate::TryRng
 //! [`SeedableRng`]: crate::SeedableRng
-//! [`rand::rngs::ReseedingRng`]: https://docs.rs/rand/latest/rand/rngs/struct.ReseedingRng.html
 
 use crate::utils::Word;
 use core::fmt;
@@ -108,18 +98,6 @@ pub trait Generator {
         let _ = output;
     }
 }
-
-/// A cryptographically secure generator
-///
-/// This is a marker trait used to indicate that a [`Generator`] implementation
-/// is supposed to be cryptographically secure.
-///
-/// Mock generators should not implement this trait *except* under a
-/// `#[cfg(test)]` attribute to ensure that mock "crypto" generators cannot be
-/// used in production.
-///
-/// See [`TryCryptoRng`](crate::TryCryptoRng) docs for more information.
-pub trait CryptoGenerator: Generator {}
 
 /// RNG functionality for a block [`Generator`]
 ///
