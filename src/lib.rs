@@ -249,3 +249,24 @@ where
 pub trait TryCryptoRng: TryRng {}
 
 impl<R: DerefMut> TryCryptoRng for R where R::Target: TryCryptoRng {}
+
+/// DEPRECATED: stub trait to print a deprecation warning and aid discovering that [`Rng`] is the
+/// replacement.
+// TODO: remove prior to v1.x.
+#[deprecated(since = "0.10.0", note = "use `Rng` instead")]
+pub trait RngCore: Rng {}
+#[allow(deprecated)]
+impl<R: Rng> RngCore for R {}
+
+/// DEPRECATED: stub trait to print a deprecation warning and aid discovering that [`TryRng`] is the
+/// replacement.
+// TODO: remove prior to v1.x.
+#[deprecated(since = "0.10.0", note = "use `TryRng` instead")]
+pub trait TryRngCore: TryRng {
+    /// Error type.
+    type Error: core::error::Error;
+}
+#[allow(deprecated)]
+impl<R: TryRng> TryRngCore for R {
+    type Error = R::Error;
+}
