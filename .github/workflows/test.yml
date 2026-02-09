@@ -18,14 +18,21 @@ permissions:
   contents: read #  to fetch code (actions/checkout)
 
 jobs:
+  lockfile:
+    name: Lockfile is up-to-date
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo check --workspace --locked
+
   clippy-fmt:
     name: Check Clippy and rustfmt
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: dtolnay/rust-toolchain@master
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
           components: clippy, rustfmt
       - name: Check Clippy
         run: cargo clippy --workspace -- -D warnings
@@ -40,9 +47,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Install toolchain
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: nightly
+        uses: dtolnay/rust-toolchain@nightly
       - name: rand_core
         run: cargo doc --no-deps
 
