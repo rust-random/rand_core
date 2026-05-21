@@ -53,6 +53,13 @@ pub trait Rng: TryRng<Error = Infallible> {
     /// Return the next random `u64`.
     fn next_u64(&mut self) -> u64;
 
+    /// Return the next random `u128`.
+    fn next_u128(&mut self) -> u128 {
+        let lo = self.next_u64() as u128;
+        let hi = self.next_u64() as u128;
+        lo + (hi << 64)
+    }
+
     /// Fill `dest` with random data.
     ///
     /// This method should guarantee that `dest` is entirely filled
@@ -196,6 +203,18 @@ pub trait TryRng {
     fn try_next_u32(&mut self) -> Result<u32, Self::Error>;
     /// Return the next random `u64`.
     fn try_next_u64(&mut self) -> Result<u64, Self::Error>;
+    /// Return the next random `u128`.
+    fn try_next_u128(&mut self) -> Result<u128, Self::Error> {
+        // this implementation prioritizes reducing branching
+        // over reducing calls to generate numbers
+        let lo = self.try_next_u64().map(u128::from);
+        let hi = self.try_next_u64().map(u128::from);
+        match (lo, hi) => {
+            (Ok(lo), Ok(hi)) => Ok(lo + (hi << 64)),
+            (lo, hi) => core::hint::selct_unpredictable(lo.is_err(), lo, hi)
+        }
+    }
+    
     /// Fill `dst` entirely with random data.
     fn try_fill_bytes(&mut self, dst: &mut [u8]) -> Result<(), Self::Error>;
 }
