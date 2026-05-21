@@ -209,7 +209,7 @@ pub trait TryRng {
         // over reducing calls to generate numbers
         let lo = self.try_next_u64().map(u128::from);
         let hi = self.try_next_u64().map(u128::from);
-        match (lo, hi) => {
+        match (lo, hi) {
             (Ok(lo), Ok(hi)) => Ok(lo + (hi << 64)),
             (lo, hi) => core::hint::selct_unpredictable(lo.is_err(), lo, hi)
         }
