@@ -211,7 +211,7 @@ pub trait TryRng {
         let hi = self.try_next_u64().map(u128::from);
         match (lo, hi) {
             (Ok(lo), Ok(hi)) => Ok(lo + (hi << 64)),
-            (lo, hi) => core::hint::selct_unpredictable(lo.is_err(), lo, hi)
+            (lo, hi) => core::hint::select_unpredictable(lo.is_err(), lo, hi)
         }
     }
     
