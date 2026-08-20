@@ -92,7 +92,8 @@ pub trait Generator {
     /// Destruct the output buffer
     ///
     /// This method is called on [`Drop`] of the [`Self::Output`] buffer.
-    /// The default implementation does nothing.
+    /// The default implementation does nothing; an overriding implementation
+    /// might be used to (securely) erase results.
     #[inline]
     fn drop(&mut self, output: &mut Self::Output) {
         let _ = output;
@@ -129,6 +130,7 @@ where
     }
 }
 
+/// Calls [`Generator::drop`] on the output buffer
 impl<G: Generator> Drop for BlockRng<G> {
     fn drop(&mut self) {
         self.core.drop(&mut self.results);
