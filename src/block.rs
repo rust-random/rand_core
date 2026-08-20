@@ -23,6 +23,7 @@
 //! }
 //!
 //! impl Generator for MyRngCore {
+//!     type Word = u32;
 //!     type Output = [u32; 8];
 //!
 //!     fn generate(&mut self, output: &mut Self::Output) {
@@ -79,9 +80,12 @@ use core::fmt;
 
 /// A random (block) generator
 pub trait Generator {
+    /// The word type.
+    type Word: Word;
+
     /// The output type.
     ///
-    /// For use with [`rand_core::block`](crate::block) code this must be `[u32; _]` or `[u64; _]`.
+    /// For use with [`rand_core::block`](crate::block) code this must be `[Self::Word; _]`.
     type Output;
 
     /// Generate a new block of `output`.
@@ -137,7 +141,7 @@ impl<G: Generator> Drop for BlockRng<G> {
     }
 }
 
-impl<W: Word + Default, const N: usize, G: Generator<Output = [W; N]>> BlockRng<G> {
+impl<W: Word + Default, const N: usize, G: Generator<Word = W, Output = [W; N]>> BlockRng<G> {
     /// Create a new `BlockRng` from an existing RNG implementing
     /// `Generator`. Results will be generated on first use.
     #[inline]
@@ -148,7 +152,7 @@ impl<W: Word + Default, const N: usize, G: Generator<Output = [W; N]>> BlockRng<
     }
 }
 
-impl<W: Word, const N: usize, G: Generator<Output = [W; N]>> BlockRng<G> {
+impl<W: Word, const N: usize, G: Generator<Word = W, Output = [W; N]>> BlockRng<G> {
     /// Get the index into the result buffer.
     ///
     /// If this is equal to or larger than the size of the result buffer then
@@ -212,7 +216,7 @@ impl<W: Word, const N: usize, G: Generator<Output = [W; N]>> BlockRng<G> {
     }
 }
 
-impl<const N: usize, G: Generator<Output = [u32; N]>> BlockRng<G> {
+impl<const N: usize, G: Generator<Word = u32, Output = [u32; N]>> BlockRng<G> {
     /// Generate a `u64` from two `u32` words
     #[inline]
     pub fn next_u64_from_u32(&mut self) -> u64 {
@@ -239,7 +243,7 @@ impl<const N: usize, G: Generator<Output = [u32; N]>> BlockRng<G> {
     }
 }
 
-impl<W: Word, const N: usize, G: Generator<Output = [W; N]>> BlockRng<G> {
+impl<W: Word, const N: usize, G: Generator<Word = W, Output = [W; N]>> BlockRng<G> {
     /// Fill `dest`
     #[inline]
     pub fn fill_bytes(&mut self, dest: &mut [u8]) {
