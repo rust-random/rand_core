@@ -144,24 +144,6 @@ impl<W: Word + Default, const N: usize, G: Generator<Output = [W; N]>> BlockRng<
         results[0] = W::from_usize(N);
         BlockRng { core, results }
     }
-
-    /// Reconstruct from a core and a remaining-results buffer.
-    ///
-    /// This may be used to deserialize using a `core` and the output of
-    /// [`Self::remaining_results`].
-    ///
-    /// Returns `None` if `remaining_results` is too long.
-    pub fn reconstruct(core: G, remaining_results: &[W]) -> Option<Self> {
-        let mut results = [W::default(); N];
-        if remaining_results.len() < N {
-            let index = N - remaining_results.len();
-            results[index..].copy_from_slice(remaining_results);
-            results[0] = W::from_usize(index);
-            Some(BlockRng { results, core })
-        } else {
-            None
-        }
-    }
 }
 
 impl<W: Word, const N: usize, G: Generator<Output = [W; N]>> BlockRng<G> {
@@ -211,20 +193,6 @@ impl<W: Word, const N: usize, G: Generator<Output = [W; N]>> BlockRng<G> {
     pub fn word_offset(&self) -> usize {
         let index = self.index();
         if index >= N { 0 } else { index }
-    }
-
-    /// Access the unused part of the results buffer
-    ///
-    /// The length of the returned slice is guaranteed to be less than the
-    /// length of `<Self as Generator>::Output` (i.e. less than `N` where
-    /// `Output = [W; N]`).
-    ///
-    /// This is a low-level interface intended for serialization.
-    /// Results are not marked as consumed.
-    #[inline]
-    pub fn remaining_results(&self) -> &[W] {
-        let index = self.index();
-        &self.results[index..]
     }
 
     /// Generate the next word (e.g. `u32`)
