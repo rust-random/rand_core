@@ -26,9 +26,10 @@
 //!     type Word = u32;
 //!     type Output = [u32; 8];
 //!
-//!     fn generate(&mut self, output: &mut Self::Output) {
+//!     fn generate(&mut self, output: &mut Self::Output) -> usize {
 //!         // Write a new block to output...
 //! #        *output = self.state;
+//! #        0
 //!     }
 //! }
 //!
@@ -90,8 +91,10 @@ pub trait Generator {
 
     /// Generate a new block of `output`.
     ///
-    /// This must fill `output` with random data.
-    fn generate(&mut self, output: &mut Self::Output);
+    /// This must fill `output` with random data and return the first usable
+    /// index. The return value must be less than the length.
+    #[must_use]
+    fn generate(&mut self, output: &mut Self::Output) -> usize;
 
     /// Erase results from the output buffer
     ///
@@ -197,9 +200,10 @@ impl<W: Word, const N: usize, G: Generator<Word = W, Output = [W; N]>> BlockRng<
             return;
         }
 
-        assert!(n < N);
-        self.core.generate(&mut self.results);
-        self.set_index(n);
+        let index = self.core.generate(&mut self.results);
+        let index = index.max(n);
+        assert!(index < N);
+        self.set_index(index);
     }
 
     /// Get the number of words consumed since the start of the block
@@ -217,8 +221,8 @@ impl<W: Word, const N: usize, G: Generator<Word = W, Output = [W; N]>> BlockRng<
     pub fn next_word(&mut self) -> W {
         let mut index = self.index();
         if index >= N {
-            self.core.generate(&mut self.results);
-            index = 0;
+            index = self.core.generate(&mut self.results);
+            assert!(index < N);
         }
 
         let value = self.results[index];
@@ -242,13 +246,14 @@ impl<const N: usize, G: Generator<Word = u32, Output = [u32; N]>> BlockRng<G> {
             G::erase(&mut self.results[index..new_index]);
         } else {
             lo = self.results[N - 1];
-            self.core.generate(&mut self.results);
-            hi = self.results[0];
-            new_index = 1;
+            new_index = self.core.generate(&mut self.results);
+            assert!(new_index + 1 < N);
+            hi = self.results[new_index];
+            new_index += 1;
             if index >= N {
                 lo = hi;
-                hi = self.results[1];
-                new_index = 2;
+                hi = self.results[new_index];
+                new_index += 1;
             }
             G::erase(&mut self.results[0..new_index]);
         }
@@ -265,8 +270,8 @@ impl<W: Word, const N: usize, G: Generator<Word = W, Output = [W; N]>> BlockRng<
         let mut index = self.index();
         while read_len < dest.len() {
             if index >= N {
-                self.core.generate(&mut self.results);
-                index = 0;
+                index = self.core.generate(&mut self.results);
+                assert!(index < N);
             }
 
             let size = core::mem::size_of::<W>();
