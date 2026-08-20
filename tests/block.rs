@@ -12,13 +12,15 @@ struct DummyRng {
 }
 
 impl Generator for DummyRng {
+    type Word = u32;
     type Output = [u32; RESULTS_LEN];
 
-    fn generate(&mut self, output: &mut Self::Output) {
+    fn generate(&mut self, output: &mut Self::Output) -> usize {
         for item in output {
             *item = self.counter;
             self.counter = self.counter.wrapping_add(3511615421);
         }
+        0
     }
 }
 
