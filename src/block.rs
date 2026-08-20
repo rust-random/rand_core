@@ -93,6 +93,17 @@ pub trait Generator {
     /// This must fill `output` with random data.
     fn generate(&mut self, output: &mut Self::Output);
 
+    /// Erase results from the output buffer
+    ///
+    /// This method is called after values from the buffer are consumed and
+    /// before the buffer is deconstructed.
+    /// The default implementation does nothing; an overriding implementation
+    /// might be used for fast erasure of consumed values.
+    #[inline]
+    fn erase(slice: &mut [Self::Word]) {
+        let _ = slice;
+    }
+
     /// Destruct the output buffer
     ///
     /// This method is called on [`Drop`] of the [`Self::Output`] buffer.
@@ -211,6 +222,7 @@ impl<W: Word, const N: usize, G: Generator<Word = W, Output = [W; N]>> BlockRng<
         }
 
         let value = self.results[index];
+        G::erase(&mut self.results[index..index + 1]);
         self.set_index(index + 1);
         value
     }
@@ -227,6 +239,7 @@ impl<const N: usize, G: Generator<Word = u32, Output = [u32; N]>> BlockRng<G> {
             lo = self.results[index];
             hi = self.results[index + 1];
             new_index = index + 2;
+            G::erase(&mut self.results[index..new_index]);
         } else {
             lo = self.results[N - 1];
             self.core.generate(&mut self.results);
@@ -237,6 +250,7 @@ impl<const N: usize, G: Generator<Word = u32, Output = [u32; N]>> BlockRng<G> {
                 hi = self.results[1];
                 new_index = 2;
             }
+            G::erase(&mut self.results[0..new_index]);
         }
         self.set_index(new_index);
         (u64::from(hi) << 32) | u64::from(lo)
@@ -277,6 +291,8 @@ impl<W: Word, const N: usize, G: Generator<Word = W, Output = [W; N]>> BlockRng<
                 break;
             }
         }
+
+        G::erase(&mut self.results[0..index]);
         self.set_index(index);
     }
 }
